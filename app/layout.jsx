@@ -1,4 +1,5 @@
 import { DM_Sans, Newsreader } from "next/font/google";
+import { DataProvider } from "@/components/providers/DataProvider";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -28,7 +29,11 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${newsreader.variable} ${dmSans.variable} h-full`}>
-      <body className="min-h-full bg-background text-foreground">{children}</body>
+      <body className="min-h-full bg-background text-foreground">
+        {/* Lives here rather than in the app layout so the landing page can load
+            the sample data before anyone enters the app. */}
+        <DataProvider>{children}</DataProvider>
+      </body>
     </html>
   );
 }

@@ -1,5 +1,6 @@
-import { ArrowRight, FileText, NotebookPen, Sparkle } from "lucide-react";
+import { FileText, NotebookPen, Sparkle } from "lucide-react";
 import { PublicShell } from "@/components/layout/PublicShell";
+import { OpenDemoButton } from "@/components/landing/OpenDemoButton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -57,10 +58,7 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Button href="/dashboard" size="lg">
-              Open the sample brief
-              <ArrowRight size={18} aria-hidden="true" />
-            </Button>
+            <OpenDemoButton>Open the sample brief</OpenDemoButton>
             <Button href="/track" variant="outline" size="lg">
               Log a symptom
             </Button>
@@ -144,10 +142,7 @@ export default function LandingPage() {
               the numbers appear.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Button href="/dashboard" size="lg">
-                Open the demo
-                <ArrowRight size={18} aria-hidden="true" />
-              </Button>
+              <OpenDemoButton>Open the demo</OpenDemoButton>
               <Button href="/practice" variant="outline" size="lg">
                 Try the practice mode
               </Button>
