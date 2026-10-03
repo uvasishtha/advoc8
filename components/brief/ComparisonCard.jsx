@@ -35,7 +35,7 @@ function GroupRow({ label, days, value, ratio, emphasis }) {
       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary-bg">
         <div
           className={cn("h-full rounded-full", emphasis ? "bg-accent-strong" : "bg-accent-muted")}
-          style={{ width: `${Math.max(ratio * 100, 2)}%` }}
+          style={{ width: `${Math.min(ratio * 100, 100)}%` }}
         />
       </div>
     </div>
