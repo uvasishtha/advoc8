@@ -1,0 +1,155 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { FileText, LayoutDashboard, NotebookPen, Settings, Sparkle } from "lucide-react";
+import { Logo } from "./Logo";
+import { cn } from "@/lib/utils";
+import { SAMPLE_USER } from "@/lib/seed/maya";
+
+const NAV_GROUPS = [
+  {
+    label: "Track",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/track", label: "Log symptoms", icon: NotebookPen },
+    ],
+  },
+  {
+    label: "Prepare",
+    items: [
+      { href: "/brief", label: "Evidence Brief", icon: FileText },
+      { href: "/practice", label: "Practice", icon: Sparkle },
+    ],
+  },
+];
+
+const ALL_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
+
+export function AppShell({ children }) {
+  const pathname = usePathname();
+
+  return (
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:font-medium"
+      >
+        Skip to content
+      </a>
+
+      <aside className="hidden w-64 shrink-0 flex-col border-b border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:border-b-0 md:border-r">
+        <div className="border-b border-border px-6 py-5">
+          <Logo />
+        </div>
+
+        <nav aria-label="Main" className="flex-1 overflow-y-auto px-3 py-5">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label} className="mb-6 last:mb-0">
+              <p className="eyebrow px-3 pb-2">{group.label}</p>
+              <ul className="space-y-1">
+                {group.items.map((item) => {
+                  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                          active
+                            ? "bg-accent-soft text-accent-strong"
+                            : "text-muted hover:bg-secondary-bg hover:text-foreground",
+                        )}
+                      >
+                        <item.icon size={17} aria-hidden="true" />
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        <div className="border-t border-border p-3">
+          <Link
+            href="/settings"
+            aria-current={pathname === "/settings" ? "page" : undefined}
+            className={cn(
+              "flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+              pathname === "/settings"
+                ? "bg-accent-soft text-accent-strong"
+                : "text-muted hover:bg-secondary-bg hover:text-foreground",
+            )}
+          >
+            <Settings size={17} aria-hidden="true" />
+            Settings
+          </Link>
+
+          <div className="mt-3 flex items-center gap-3 rounded-full bg-secondary-bg px-3 py-2">
+            <span
+              aria-hidden="true"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-foreground"
+            >
+              MR
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-medium text-foreground">
+                {SAMPLE_USER.displayName}
+              </span>
+              <span className="block truncate text-xs text-muted">Prototype account</span>
+            </span>
+          </div>
+        </div>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur md:hidden">
+          <div className="flex items-center justify-between px-4 py-3">
+            <Logo />
+            <Link href="/settings" className="rounded-full p-2 text-muted hover:text-foreground">
+              <Settings size={18} aria-hidden="true" />
+              <span className="sr-only">Settings</span>
+            </Link>
+          </div>
+          <nav aria-label="Main" className="flex gap-1 overflow-x-auto px-3 pb-3">
+            {ALL_ITEMS.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+                    active
+                      ? "border-accent-muted bg-accent-soft text-accent-strong"
+                      : "border-border text-muted",
+                  )}
+                >
+                  <item.icon size={15} aria-hidden="true" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </header>
+
+        <main id="main" className="min-w-0 flex-1">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+/** Standard page gutter and max width for authenticated screens. */
+export function PageContainer({ children, className }) {
+  return (
+    <div className={cn("mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8", className)}>
+      {children}
+    </div>
+  );
+}
