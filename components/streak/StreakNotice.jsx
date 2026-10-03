@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { StreakEight } from "@/components/streak/StreakEight";
+import { StreakHeart } from "@/components/streak/StreakHeart";
 import { STREAK_NOTE } from "@/lib/streak";
 import { formatDate } from "@/lib/format";
 
@@ -44,7 +44,7 @@ export function StreakNotice({ entry, streak, onDismiss, autoDismissMs = 10000 }
     >
       <div className="flex items-start gap-4">
         {showStreak ? (
-          <StreakEight size={64} className="mt-0.5" />
+          <StreakHeart size={64} className="mt-0.5" />
         ) : (
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success-soft text-success">
             <Check size={18} aria-hidden="true" />

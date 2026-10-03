@@ -3,7 +3,7 @@
 import { NotebookPen } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { StreakEight } from "@/components/streak/StreakEight";
+import { StreakHeart } from "@/components/streak/StreakHeart";
 import { STREAK_NOTE } from "@/lib/streak";
 
 /**
@@ -17,7 +17,7 @@ export function StreakPanel({ streak }) {
   return (
     <Card className="p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
-        <StreakEight size={52} animated={false} sparkles={false} />
+        <StreakHeart size={52} animated={false} sparkles={false} />
 
         <div className="min-w-0 flex-1">
           <p className="font-serif text-lg font-semibold leading-tight text-accent-strong">
