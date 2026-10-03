@@ -51,3 +51,58 @@ export type ChecklistItem = {
   label: string;
   completed: boolean;
 };
+
+export type ProfileEducation = {
+  id: string;
+  school: string;
+  credential: string;
+  period: string;
+};
+
+export type ProfileExperience = {
+  id: string;
+  role: string;
+  organization: string;
+  period: string;
+};
+
+export type UserProfile = {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  phone: string;
+  role: string;
+  location: string;
+  bio: string;
+  avatarUrl?: string;
+  memberSince: string;
+  education: ProfileEducation[];
+  experience: ProfileExperience[];
+  skills: string[];
+};
+
+export type ProfileActivityType =
+  | "symptom"
+  | "insight"
+  | "report"
+  | "visit"
+  | "profile";
+
+export type ProfileActivity = {
+  id: string;
+  type: ProfileActivityType;
+  title: string;
+  detail: string;
+  date: string;
+};
+
+export type ProfileStatIcon = "symptoms" | "affected" | "patterns" | "questions";
+
+export type ProfileStat = {
+  id: string;
+  label: string;
+  value: string;
+  hint?: string;
+  icon: ProfileStatIcon;
+};

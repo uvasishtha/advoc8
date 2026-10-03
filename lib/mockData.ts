@@ -1,4 +1,4 @@
-import type { SymptomEntry, HealthProfile, ConditionSuggestion, VisitEntry, ChecklistItem } from "./types";
+import type { SymptomEntry, HealthProfile, ConditionSuggestion, VisitEntry, ChecklistItem, UserProfile, ProfileActivity } from "./types";
 
 export const mockProfile: HealthProfile = {
   ageRange: "18-24",
@@ -164,4 +164,97 @@ export const mockQuestions = [
   "What tests might help rule out possible causes?",
   "Should I see a specialist?",
   "What should I track before my next visit?",
+];
+
+export const mockUser: UserProfile = {
+  id: "user-1",
+  name: "Maya Ellison",
+  username: "maya.e",
+  email: "maya.ellison@example.com",
+  phone: "+1 (617) 555-0142",
+  role: "Public health research assistant",
+  location: "Boston, MA",
+  bio: "Public health student turning a symptom log into a record a doctor can act on. I track symptoms weekly, prepare questions before every appointment, and share what works.",
+  memberSince: "2026-01-12",
+  education: [
+    {
+      id: "edu-1",
+      school: "University of Massachusetts Amherst",
+      credential: "B.S. Public Health",
+      period: "2023 — 2027",
+    },
+    {
+      id: "edu-2",
+      school: "Cambridge Rindge & Latin School",
+      credential: "High School Diploma",
+      period: "2019 — 2023",
+    },
+  ],
+  experience: [
+    {
+      id: "exp-1",
+      role: "Peer Health Advocate",
+      organization: "Community Health Collective",
+      period: "Jun 2025 — Present",
+    },
+    {
+      id: "exp-2",
+      role: "Research Assistant",
+      organization: "Campus Health Access Lab",
+      period: "Sep 2024 — May 2025",
+    },
+  ],
+  skills: [
+    "Patient advocacy",
+    "Symptom tracking",
+    "Health data analysis",
+    "Public health research",
+    "Medical terminology",
+    "Report writing",
+  ],
+};
+
+export const mockProfileActivity: ProfileActivity[] = [
+  {
+    id: "act-1",
+    type: "symptom",
+    title: "Logged pelvic pain",
+    detail: "Severity 7 / 10, lower abdomen, missed class.",
+    date: "2026-10-01",
+  },
+  {
+    id: "act-2",
+    type: "insight",
+    title: "Reviewed the endometriosis pattern",
+    detail: "Read the pattern summary and checked 3 sources.",
+    date: "2026-09-29",
+  },
+  {
+    id: "act-3",
+    type: "report",
+    title: "Prepared a health summary report",
+    detail: "6 symptom entries and 2 questions for the gynecology referral.",
+    date: "2026-09-27",
+  },
+  {
+    id: "act-4",
+    type: "visit",
+    title: "Logged a doctor visit",
+    detail: "Blood work ordered, referral to a gynecologist, follow-up booked for October 10.",
+    date: "2026-09-26",
+  },
+  {
+    id: "act-5",
+    type: "symptom",
+    title: "Logged heavy periods",
+    detail: "Severity 6 / 10, bleeding lasted 7 days with clots.",
+    date: "2026-09-25",
+  },
+  {
+    id: "act-6",
+    type: "profile",
+    title: "Updated your health profile",
+    detail: "Added birth control to current medications.",
+    date: "2026-09-20",
+  },
 ];

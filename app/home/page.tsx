@@ -67,6 +67,14 @@ export default function HomePage() {
           <p className="text-sm text-muted">{uniqueSymptoms} different symptoms tracked</p>
         </Card>
       </div>
+
+      <div className="pt-6 border-t border-border">
+        <Link href="/profile">
+          <Button variant="secondary" className="w-full">
+            View health profile
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }
