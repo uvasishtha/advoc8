@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { DeleteDataModal } from "@/components/settings/DeleteDataModal";
 import { mockProfile } from "@/lib/mockData";
 
 export default function SettingsPage() {

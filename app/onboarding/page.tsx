@@ -8,7 +8,6 @@ import type { HealthProfile } from "@/lib/types";
 
 const ageRanges = ["13-17", "18-24", "25-34", "35-44", "45-54", "55+"];
 const conditionOptions = ["Endometriosis", "PCOS", "Fibroids", "Chronic pain", "Anxiety", "None"];
-const surgeryOptions = ["Appendix removal", "C-section", "Other", "None"];
 const familyHistoryOptions = ["Endometriosis", "PCOS", "Autoimmune conditions", "Diabetes", "None known"];
 const environmentOptions = ["High stress", "Irregular sleep", "Limited physical activity", "None / unsure"];
 const symptomOptions = ["Pelvic pain", "Abdominal pain", "Fatigue", "Headaches", "Heavy periods", "Irregular periods", "Pain during sex", "Mood changes"];

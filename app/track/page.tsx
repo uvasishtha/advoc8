@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
@@ -103,7 +102,7 @@ function SymptomFormModal({ isOpen, onClose, onSave }: { isOpen: boolean; onClos
   };
 
   return (
-    <Modal isOpen={isModalOpen} onClose={onClose} title="Log a symptom" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title="Log a symptom" size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium mb-2">Symptom</label>
