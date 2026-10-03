@@ -57,10 +57,17 @@ export function StatementSection({ value, onChange }) {
           onChange={(event) => setBuffer(event.target.value)}
           hint="A clinician reads this first. Say what you want them to understand."
         />
-      ) : (
+      ) : value?.trim() ? (
         <blockquote className="border-l-2 border-accent pl-4 font-serif text-lg leading-relaxed text-foreground">
           {value}
         </blockquote>
+      ) : (
+        <p className="rounded-xl border border-dashed border-border-strong px-4 py-5 text-sm leading-relaxed text-muted">
+          Nothing written here yet. Add the one thing you most want your doctor to understand —
+          <span className="mt-1 block font-medium text-foreground">
+            you can skip it in setup and add it whenever you are ready.
+          </span>
+        </p>
       )}
     </Card>
   );

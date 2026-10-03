@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarDays, FileText, NotebookPen, Sparkle } from "lucide-react";
+import { ArrowRight, CalendarDays, FileText, Lock, NotebookPen, Sparkle } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
+import { GatedButton } from "@/components/onboarding/FeatureLock";
+import { FEATURE_IDS } from "@/lib/onboarding";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Stat, StatGrid } from "@/components/ui/Section";
@@ -31,13 +33,16 @@ function DashboardSkeleton() {
 }
 
 export default function DashboardPage() {
-  const { user, isReady, report, symptomEntries } = useAdvoc8();
+  const { user, isReady, report, symptomEntries, access } = useAdvoc8();
 
   if (!isReady) return <DashboardSkeleton />;
 
   const today = todayIso();
   const loggedToday = symptomEntries.filter((entry) => entry.date === today);
   const lead = report.symptoms[0] ?? null;
+  const briefLocked = !access.features[FEATURE_IDS.BRIEF].unlocked;
+  const practiceLocked = !access.features[FEATURE_IDS.PRACTICE].unlocked;
+  const trendsLocked = !access.features[FEATURE_IDS.TRENDS].unlocked;
 
   const trendSeries = report.symptoms.slice(0, 3).map((symptom) => ({
     name: symptom.name,
@@ -53,7 +58,7 @@ export default function DashboardPage() {
     return (
       <PageContainer>
         <div className="mb-8">
-          <h1 className="font-serif text-3xl font-semibold">Welcome back, {user.firstName}</h1>
+          <h1 className="font-serif text-3xl font-semibold">{user.greeting}</h1>
           <p className="hint mt-1">Nothing logged yet. Your Evidence Brief builds itself as you track.</p>
         </div>
         <EmptyState
@@ -77,9 +82,7 @@ export default function DashboardPage() {
     <PageContainer className="space-y-8">
       <header>
         <p className="eyebrow">Dashboard</p>
-        <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">
-          Welcome back, {user.firstName}
-        </h1>
+        <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">{user.greeting}</h1>
         <p className="hint mt-1.5">{report.coverage}</p>
       </header>
 
@@ -87,20 +90,30 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-sm font-medium text-accent-strong">
-              <FileText size={16} aria-hidden="true" />
+              {briefLocked ? (
+                <Lock size={16} aria-hidden="true" />
+              ) : (
+                <FileText size={16} aria-hidden="true" />
+              )}
               Your Evidence Brief
             </p>
             <p className="mt-1 font-serif text-2xl font-semibold text-foreground">
-              {report.range.label}
+              {briefLocked ? "Not generated yet" : report.range.label}
             </p>
             <p className="hint mt-1">
-              {report.range.entryCount} entries across {report.range.daysLogged} days
+              {briefLocked
+                ? access.features[FEATURE_IDS.BRIEF].message
+                : `${report.range.entryCount} entries across ${report.range.daysLogged} days`}
             </p>
           </div>
-          <Button href="/brief">
+          <GatedButton featureId={FEATURE_IDS.BRIEF} href="/brief">
+            {briefLocked ? (
+              <Lock size={16} aria-hidden="true" />
+            ) : (
+              <ArrowRight size={16} aria-hidden="true" />
+            )}
             View Evidence Brief
-            <ArrowRight size={16} aria-hidden="true" />
-          </Button>
+          </GatedButton>
         </div>
 
         <StatGrid columns={3} className="mt-6">
@@ -156,16 +169,30 @@ export default function DashboardPage() {
 
         <Card className="flex flex-col justify-between gap-5 p-5">
           <div>
-            <p className="eyebrow">Practice</p>
+            <p className="eyebrow flex items-center gap-1.5">
+              Practice
+              {practiceLocked ? <Lock size={12} aria-hidden="true" /> : null}
+            </p>
             <h2 className="mt-1 font-serif text-xl font-semibold">Rehearse before you go in</h2>
             <p className="hint mt-1">
-              Practise explaining your experience with an assistant that only uses your own records.
+              {practiceLocked
+                ? access.features[FEATURE_IDS.PRACTICE].message
+                : "Practise explaining your experience with an assistant that only uses your own records."}
             </p>
           </div>
-          <Button href="/practice" variant="outline" className="self-start">
-            <Sparkle size={16} aria-hidden="true" />
+          <GatedButton
+            featureId={FEATURE_IDS.PRACTICE}
+            href="/practice"
+            variant="outline"
+            className="self-start"
+          >
+            {practiceLocked ? (
+              <Lock size={16} aria-hidden="true" />
+            ) : (
+              <Sparkle size={16} aria-hidden="true" />
+            )}
             Practice with Advoc8
-          </Button>
+          </GatedButton>
         </Card>
       </div>
 
@@ -173,8 +200,9 @@ export default function DashboardPage() {
         <section aria-labelledby="recent-trend">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 id="recent-trend" className="font-serif text-xl font-semibold">
+              <h2 id="recent-trend" className="flex items-center gap-2 font-serif text-xl font-semibold">
                 Severity across the period
+                {trendsLocked ? <Lock size={15} className="text-muted" aria-hidden="true" /> : null}
               </h2>
               <p className="hint">Highest severity recorded on each day you logged a symptom.</p>
             </div>
@@ -184,7 +212,19 @@ export default function DashboardPage() {
             </Badge>
           </div>
           <Card className="p-5">
-            <SeverityTrendChart series={trendSeries} height={240} />
+            {trendsLocked ? (
+              <p className="py-10 text-center text-sm leading-relaxed text-muted">
+                <Lock size={16} className="mx-auto mb-3 text-accent-strong" aria-hidden="true" />
+                {access.features[FEATURE_IDS.TRENDS].message}
+                <span className="mt-3 block">
+                  <Button href="/setup" size="sm">
+                    Complete Setup
+                  </Button>
+                </span>
+              </p>
+            ) : (
+              <SeverityTrendChart series={trendSeries} height={240} />
+            )}
           </Card>
         </section>
       ) : null}
