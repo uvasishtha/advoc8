@@ -141,31 +141,34 @@ export function DataProvider({ children }) {
 
   /**
    * Loads Maya's sample data. This is the developer override behind the landing
-   * page: `unlock: true` also marks setup complete so every feature can be seen
-   * immediately, while `unlock: false` loads the same tracking rows and leaves
-   * the locks in place so the gated states can be reviewed too.
+   * page.
+   *
+   * `unlock: true` — the finished app: sample profile included, so every
+   * feature is open and a dev can see all of it at once.
+   *
+   * `unlock: false` — the same tracking rows behind a first-run profile: the
+   * survey still asks its questions, and until they are answered the
+   * personalised features stay locked. Resets the profile rather than trusting
+   * whatever state this browser was already in, so the button always lands the
+   * same way.
    */
   const resetToSampleData = useCallback(
     ({ unlock = true } = {}) => {
       setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
-      seedBriefDraft({
-        statement: SAMPLE_ONBOARDING.doctorNote,
-        appointmentGoal: SAMPLE_APPOINTMENT_GOAL,
-      });
 
       if (unlock) {
         setOnboarding({ ...SAMPLE_ONBOARDING });
+        seedBriefDraft({
+          statement: SAMPLE_ONBOARDING.doctorNote,
+          appointmentGoal: SAMPLE_APPOINTMENT_GOAL,
+        });
         return;
       }
 
-      // An untouched profile would be intercepted by the first-run gate, so mark
-      // it skipped rather than pending. A profile that already exists is left
-      // exactly as the user left it.
-      setOnboarding((current) =>
-        current.status === SETUP_STATUS.PENDING
-          ? { ...EMPTY_ONBOARDING, status: SETUP_STATUS.SKIPPED, skippedAt: new Date().toISOString() }
-          : current,
-      );
+      // No sample words here: these are a stranger's records, not this person's
+      // profile. The survey supplies the statement once it is answered.
+      setOnboarding({ ...EMPTY_ONBOARDING });
+      resetBriefDraft();
     },
     [setEntries, setOnboarding],
   );
