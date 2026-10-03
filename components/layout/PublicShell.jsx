@@ -21,17 +21,11 @@ export function PublicShell({ children }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-full px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-secondary-bg hover:text-foreground"
+                className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent-strong hover:text-white"
               >
                 {item.label}
               </Link>
             ))}
-            <Link
-              href="/dashboard"
-              className="ml-1 rounded-full bg-accent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent-strong hover:text-white"
-            >
-              Open the demo
-            </Link>
           </nav>
         </div>
       </header>
@@ -58,6 +52,9 @@ export function PublicShell({ children }) {
                   {item.label}
                 </Link>
               ))}
+              <Link href="/settings" className="text-muted hover:text-foreground">
+                Settings
+              </Link>
             </nav>
           </div>
 

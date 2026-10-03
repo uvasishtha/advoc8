@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { ArrowRight, FileText, NotebookPen, Sparkle } from "lucide-react";
 import { PublicShell } from "@/components/layout/PublicShell";
 import { Button } from "@/components/ui/Button";
@@ -62,8 +61,8 @@ export default function LandingPage() {
               Open the sample brief
               <ArrowRight size={18} aria-hidden="true" />
             </Button>
-            <Button href="/how-it-works" variant="outline" size="lg">
-              See how it works
+            <Button href="/track" variant="outline" size="lg">
+              Log a symptom
             </Button>
           </div>
 
@@ -115,13 +114,6 @@ export default function LandingPage() {
               It reports what you logged and what kept appearing together. Deciding what that means
               is a conversation for a clinician who can examine you.
             </p>
-            <Link
-              href="/how-it-works"
-              className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent-strong hover:underline"
-            >
-              Read the full explanation
-              <ArrowRight size={15} aria-hidden="true" />
-            </Link>
           </div>
 
           <Card className="p-6">
@@ -156,8 +148,8 @@ export default function LandingPage() {
                 Open the demo
                 <ArrowRight size={18} aria-hidden="true" />
               </Button>
-              <Button href="/signup" variant="outline" size="lg">
-                Create an account
+              <Button href="/practice" variant="outline" size="lg">
+                Try the practice mode
               </Button>
             </div>
           </div>
