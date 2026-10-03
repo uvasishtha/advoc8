@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 
-const NAV = [
-  { href: "/how-it-works", label: "How it works" },
-  { href: "/login", label: "Sign in" },
-  { href: "/signup", label: "Create account" },
-];
+const NAV = [{ href: "/dashboard", label: "Open the demo" }];
 
 export function PublicShell({ children }) {
   return (
