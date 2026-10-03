@@ -34,4 +34,10 @@ line();
 line("PAIRS");
 for (const pair of report.symptomPairs) line(` - ${pair.statement}`);
 line();
-line("COVERAGE " + report.coverage);
+line("COVERAGE " + report.coverage);line();
+line("COMPARISONS");
+for (const c of report.comparisons) {
+  line(` - [${c.symptom} x ${c.shortLabel}] strength=${c.strength.toFixed(2)}`);
+  if (c.severitySentence) line(`     ${c.severitySentence}`);
+  if (c.frequencySentence) line(`     ${c.frequencySentence}`);
+}
