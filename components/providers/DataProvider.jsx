@@ -139,14 +139,36 @@ export function DataProvider({ children }) {
     }));
   }, [setOnboarding]);
 
-  const resetToSampleData = useCallback(() => {
-    setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
-    setOnboarding({ ...SAMPLE_ONBOARDING });
-    seedBriefDraft({
-      statement: SAMPLE_ONBOARDING.doctorNote,
-      appointmentGoal: SAMPLE_APPOINTMENT_GOAL,
-    });
-  }, [setEntries, setOnboarding]);
+  /**
+   * Loads Maya's sample data. This is the developer override behind the landing
+   * page: `unlock: true` also marks setup complete so every feature can be seen
+   * immediately, while `unlock: false` loads the same tracking rows and leaves
+   * the locks in place so the gated states can be reviewed too.
+   */
+  const resetToSampleData = useCallback(
+    ({ unlock = true } = {}) => {
+      setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
+      seedBriefDraft({
+        statement: SAMPLE_ONBOARDING.doctorNote,
+        appointmentGoal: SAMPLE_APPOINTMENT_GOAL,
+      });
+
+      if (unlock) {
+        setOnboarding({ ...SAMPLE_ONBOARDING });
+        return;
+      }
+
+      // An untouched profile would be intercepted by the first-run gate, so mark
+      // it skipped rather than pending. A profile that already exists is left
+      // exactly as the user left it.
+      setOnboarding((current) =>
+        current.status === SETUP_STATUS.PENDING
+          ? { ...EMPTY_ONBOARDING, status: SETUP_STATUS.SKIPPED, skippedAt: new Date().toISOString() }
+          : current,
+      );
+    },
+    [setEntries, setOnboarding],
+  );
 
   const clearAllEntries = useCallback(() => {
     setEntries(EMPTY_ENTRIES);

@@ -58,7 +58,7 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <OpenDemoButton>Open the sample brief</OpenDemoButton>
+            <OpenDemoButton unlock={false}>Open the sample brief</OpenDemoButton>
             <Button href="/track" variant="outline" size="lg">
               Log a symptom
             </Button>
