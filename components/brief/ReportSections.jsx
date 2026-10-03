@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Stat, StatGrid } from "@/components/ui/Section";
 import { EmptyState } from "@/components/ui/Notice";
 import { PatternCard } from "@/components/brief/PatternCard";
+import { ComparisonCard } from "@/components/brief/ComparisonCard";
 import {
   FrequencyChart,
   HalfComparisonChart,
@@ -13,7 +14,7 @@ import {
   SymptomCalendar,
 } from "@/components/charts/Charts";
 import { formatDate, formatDuration, roundTo } from "@/lib/format";
-import { CalendarRange } from "lucide-react";
+import { CalendarRange, GitCompareArrows } from "lucide-react";
 
 /** 01 — What I've Been Experiencing */
 export function OverviewSection({ report, user }) {
@@ -38,6 +39,9 @@ export function OverviewSection({ report, user }) {
           value={report.range.daysLogged}
           unit="of"
           label={`Days reported across ${report.range.totalDays}`}
+          hint={`Context recorded on ${report.range.daysWithContext} ${
+            report.range.daysWithContext === 1 ? "day" : "days"
+          }`}
         />
         <Stat
           value={report.symptoms.length}
@@ -217,7 +221,41 @@ export function PatternsSection({ report }) {
   );
 }
 
-/** 05 — Changes Over Time */
+/** 05 — Measured Differences */
+export function ComparisonsSection({ report }) {
+  const comparisons = report.comparisons;
+
+  if (comparisons.length === 0) {
+    return (
+      <EmptyState
+        icon={GitCompareArrows}
+        title="Not enough overlap yet"
+        description="This section compares your symptom days against the days a factor was not present. It fills in once both sides have several days recorded."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <Card tone="soft" className="p-5 sm:p-6">
+        <h3 className="font-serif text-lg font-semibold">How far apart the groups are</h3>
+        <p className="hint mt-1.5">
+          Each card splits your own days in two — the days a factor was recorded, and the days it was
+          not — then shows the gap. Both groups are listed with the number of days behind them so you
+          can judge how much weight the comparison carries.
+        </p>
+      </Card>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {comparisons.map((comparison) => (
+          <ComparisonCard key={comparison.id} comparison={comparison} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 06 — Changes Over Time */
 export function ChangesSection({ report }) {
   const comparable = report.symptoms.filter((symptom) => symptom.hasEnoughData);
   const comparisonData = comparable.map((symptom) => ({

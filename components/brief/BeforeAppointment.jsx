@@ -15,6 +15,7 @@ import { formatDate, roundTo } from "@/lib/format";
 export function BeforeAppointment({ report, user, statement, questions, appointmentGoal, onAppointmentGoalChange }) {
   const lead = report.symptoms[0];
   const topPatterns = report.patterns.slice(0, 3);
+  const topComparison = report.comparisons[0] ?? null;
 
   return (
     <Card tone="soft" className="p-5 sm:p-7">
@@ -57,11 +58,23 @@ export function BeforeAppointment({ report, user, statement, questions, appointm
               </span>
             </li>
             <li className="flex justify-between gap-3 rounded-lg bg-surface/70 px-3 py-2 text-sm">
+              <span className="text-muted">Days reported</span>
+              <span className="font-medium text-foreground">
+                {report.range.daysLogged} of {report.range.totalDays}
+              </span>
+            </li>
+            <li className="flex justify-between gap-3 rounded-lg bg-surface/70 px-3 py-2 text-sm">
               <span className="text-muted">Average stress</span>
               <span className="font-medium text-foreground">
                 {roundTo(report.context?.averageStress)}/5 · {report.context?.highStressDays} high days
               </span>
             </li>
+            {topComparison ? (
+              <li className="rounded-lg bg-surface/70 px-3 py-2 text-sm">
+                <p className="text-muted">Biggest measured difference</p>
+                <p className="mt-0.5 leading-relaxed text-foreground">{topComparison.headline}</p>
+              </li>
+            ) : null}
           </ul>
         </div>
 
@@ -87,7 +100,7 @@ export function BeforeAppointment({ report, user, statement, questions, appointm
               </li>
             ))}
             {questions.length === 0 ? (
-              <li className="hint">No questions added yet. Generate some in section 07.</li>
+              <li className="hint">No questions added yet. Generate some in section 08.</li>
             ) : null}
           </ol>
 

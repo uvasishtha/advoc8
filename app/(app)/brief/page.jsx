@@ -14,6 +14,7 @@ import { useBriefDraft } from "@/lib/use-brief-draft";
 import { PrintDoctorSummaryButton } from "@/components/brief/PrintDoctorSummaryButton";
 import {
   ChangesSection,
+  ComparisonsSection,
   OverviewSection,
   PatternsSection,
   TimelineSection,
@@ -113,6 +114,14 @@ export default function BriefPage() {
 
               <Section
                 number={5}
+                title="Measured Differences"
+                description="Your days split by context factor, with the size of the gap. A difference, not a cause."
+              >
+                <ComparisonsSection report={report} />
+              </Section>
+
+              <Section
+                number={6}
                 title="Changes Over Time"
                 description="First half of the period compared with the second half."
               >
@@ -120,7 +129,7 @@ export default function BriefPage() {
               </Section>
 
               <Section
-                number={6}
+                number={7}
                 title="What I Want My Doctor to Know"
                 description="Your words, not generated ones. Edit it any time."
               >
@@ -128,7 +137,7 @@ export default function BriefPage() {
               </Section>
 
               <Section
-                number={7}
+                number={8}
                 title="Questions I Want to Ask"
                 description="Generated from this brief. Edit, delete or add your own — yours is what gets printed."
               >

@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
   bullet: { flexDirection: "row", marginBottom: 4 },
   bulletMark: { width: 12, color: "#C4307F" },
   bulletText: { flex: 1 },
+  metric: { fontSize: 8, color: "#6E6169", marginTop: 2 },
   quote: {
     borderLeftWidth: 2,
     borderLeftColor: "#FF91BD",
@@ -84,6 +85,7 @@ export function BriefPdf({ report, user, statement, questions, appointmentGoal }
             items={[
               ["First entry logged", report?.symptoms?.[0]?.firstSeen ? formatDate(report.symptoms[0].firstSeen) : "—"],
               ["Days reported", `${report?.range?.daysLogged} of ${report?.range?.totalDays}`],
+              ["Days with sleep/stress recorded", String(report?.range?.daysWithContext ?? 0)],
               ["Symptoms tracked", String(report?.symptoms?.length ?? 0)],
               [
                 `Average ${lead ? lead.name.toLowerCase() : "severity"}`,
@@ -108,7 +110,10 @@ export function BriefPdf({ report, user, statement, questions, appointmentGoal }
           <Rows
             items={[
               ["Period covered", report?.range?.label ?? "—"],
-              ["Days with at least one symptom", String(report?.range?.daysWithSymptoms ?? 0)],
+              [
+                "Days with at least one symptom",
+                String(report?.range?.daysLogged ?? 0),
+              ],
               [
                 "Context recorded",
                 report?.context
@@ -146,7 +151,34 @@ export function BriefPdf({ report, user, statement, questions, appointmentGoal }
           )}
         </Section>
 
-        <Section number="05" title="Changes Over Time">
+        <Section number="05" title="Measured Differences">
+          {report?.comparisons?.length > 0 ? (
+            report.comparisons.map((comparison) => (
+              <View key={comparison.id} style={styles.box}>
+                <Text>{comparison.headline}</Text>
+                {comparison.hasSeverityData ? (
+                  <Text style={styles.metric}>
+                    Severity {roundTo(comparison.severityWithFactor.average)} / 10 on{" "}
+                    {comparison.severityWithFactor.days} {comparison.shortLabel} days vs{" "}
+                    {roundTo(comparison.severityOutsideFactor.average)} / 10 on{" "}
+                    {comparison.severityOutsideFactor.days} other days
+                  </Text>
+                ) : null}
+                {comparison.hasFrequencyData ? (
+                  <Text style={styles.metric}>
+                    Logged on {Math.round(comparison.factorRate * 100)}% of {comparison.daysWithFactor}{" "}
+                    {comparison.shortLabel} days vs {Math.round(comparison.outsideRate * 100)}% of{" "}
+                    {comparison.daysOutsideFactor} other days
+                  </Text>
+                ) : null}
+              </View>
+            ))
+          ) : (
+            <Text>Not enough overlapping days to compare two groups yet.</Text>
+          )}
+        </Section>
+
+        <Section number="06" title="Changes Over Time">
           {report?.symptoms
             ?.filter((symptom) => symptom.hasEnoughData)
             .map((symptom) => (
@@ -157,11 +189,11 @@ export function BriefPdf({ report, user, statement, questions, appointmentGoal }
             ))}
         </Section>
 
-        <Section number="06" title="What I Want My Doctor to Know">
+        <Section number="07" title="What I Want My Doctor to Know">
           <Text style={styles.quote}>{statement}</Text>
         </Section>
 
-        <Section number="07" title="Questions I Want to Ask">
+        <Section number="08" title="Questions I Want to Ask">
           {(questions?.length > 0 ? questions : []).map((question, index) => (
             <Text key={question.id ?? index} style={styles.bullet}>
               <Text style={styles.bulletMark}>{index + 1}.</Text>
@@ -171,7 +203,7 @@ export function BriefPdf({ report, user, statement, questions, appointmentGoal }
           {questions?.length === 0 ? <Text>No questions added yet.</Text> : null}
         </Section>
 
-        <Section number="08" title="Before My Appointment">
+        <Section number="09" title="Before My Appointment">
           <Text style={{ marginBottom: 4 }}>My goal for this appointment:</Text>
           <Text style={styles.quote}>{appointmentGoal}</Text>
         </Section>
