@@ -1,12 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
 import { mockSymptoms } from "@/lib/mockData";
 import type { SymptomEntry } from "@/lib/types";
+
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
+function formatShortDate(dateStr: string) {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 function groupByDate(symptoms: SymptomEntry[]) {
   const grouped: Record<string, SymptomEntry[]> = {};
@@ -69,7 +78,7 @@ export default function TrackPage() {
           <Card key={date} padding="none">
             <div className="px-6 py-4 border-b border-border bg-secondary-bg/30">
               <time className="text-sm font-medium text-muted uppercase tracking-wider">
-                {format(new Date(date), "MMMM d, yyyy")}
+                {formatDate(date)}
               </time>
             </div>
             <div className="divide-y divide-border">
@@ -176,7 +185,7 @@ function SymptomChart({ symptoms }: { symptoms: SymptomEntry[] }) {
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date))
     .map((s) => ({
-      date: format(new Date(s.date), "MMM d"),
+      date: formatShortDate(s.date),
       severity: s.severity,
       symptom: s.symptom,
     }));
@@ -223,7 +232,7 @@ function SymptomFormModal({ isOpen, onClose, onSave }: SymptomFormModalProps) {
     severity: "5",
     location: "",
     painQuality: "",
-    date: format(new Date(), "yyyy-MM-dd"),
+    date: new Date().toISOString().split("T")[0],
     cycleDay: "",
     impact: "",
     notes: "",
@@ -247,7 +256,7 @@ function SymptomFormModal({ isOpen, onClose, onSave }: SymptomFormModalProps) {
       severity: "5",
       location: "",
       painQuality: "",
-      date: format(new Date(), "yyyy-MM-dd"),
+      date: new Date().toISOString().split("T")[0],
       cycleDay: "",
       impact: "",
       notes: "",

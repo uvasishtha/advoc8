@@ -116,8 +116,8 @@ export default function VisitPage() {
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="text-sm font-medium">
-                  {format(new Date(visit.date), "MMMM d, yyyy")}
-                </p>
+                {format(visit.date)}
+              </p>
                 <p className="text-xs text-muted">{visit.providerType}</p>
               </div>
             </div>
