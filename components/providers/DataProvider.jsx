@@ -1,95 +1,89 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import { buildReport } from "@/lib/analytics";
 import { todayIso } from "@/lib/format";
+import { createLocalStore, useLocalStore } from "@/lib/local-store";
 import { MOCK_CONTEXT_ENTRIES, MOCK_SYMPTOM_ENTRIES, SAMPLE_USER } from "@/lib/seed/maya";
 
-const STORAGE_KEY = "advoc8.entries.v1";
+const EMPTY = Object.freeze({ symptomEntries: [], contextEntries: [] });
+
+const entriesStore = createLocalStore("advoc8.entries.v1", EMPTY);
 
 const DataContext = createContext(null);
 
 /**
  * Holds the user's tracking rows and derives the report from them.
  *
- * The analytics run here, in the browser, over exactly the rows the user has
- * logged. Nothing in this provider asks a model for a statistic.
+ * The analytics run here over exactly the rows the user has logged. Nothing in
+ * this provider asks a model for a statistic.
  *
  * Persistence is localStorage for the prototype. When Supabase is wired in,
- * this provider is the only file that changes: swap the load/save helpers for
- * the route handlers and everything downstream keeps working.
+ * only the store definition changes: point it at the route handlers and every
+ * downstream component keeps working unchanged.
  */
 export function DataProvider({ children }) {
-  const [symptomEntries, setSymptomEntries] = useState([]);
-  const [contextEntries, setContextEntries] = useState([]);
-  const [isReady, setIsReady] = useState(false);
+  const [entries, setEntries, isReady] = useLocalStore(entriesStore);
 
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setSymptomEntries(parsed.symptomEntries ?? []);
-        setContextEntries(parsed.contextEntries ?? []);
-        setIsReady(true);
-        return;
-      }
-    } catch {
-      // Corrupt or unavailable storage falls through to the sample data.
-    }
-
-    setSymptomEntries(MOCK_SYMPTOM_ENTRIES);
-    setContextEntries(MOCK_CONTEXT_ENTRIES);
-    setIsReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isReady) return;
-    try {
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ symptomEntries, contextEntries }),
-      );
-    } catch {
-      // Storage full or blocked: the app still works for this session.
-    }
-  }, [symptomEntries, contextEntries, isReady]);
+  const { symptomEntries, contextEntries } = entries;
 
   const report = useMemo(
     () => buildReport({ symptomEntries, contextEntries }),
     [symptomEntries, contextEntries],
   );
 
-  const addSymptomEntry = useCallback((entry) => {
-    setSymptomEntries((previous) => [
-      { ...entry, id: entry.id ?? `sym-${entry.date}-${entry.symptom}-${Date.now()}` },
-      ...previous,
-    ]);
-  }, []);
+  const addSymptomEntry = useCallback(
+    (entry) => {
+      const row = {
+        user_id: SAMPLE_USER.id,
+        ...entry,
+        id: entry.id ?? `sym-${entry.date}-${entry.symptom}-${Date.now()}`,
+      };
+      setEntries((current) => ({ ...current, symptomEntries: [row, ...current.symptomEntries] }));
+    },
+    [setEntries],
+  );
 
-  const removeSymptomEntry = useCallback((id) => {
-    setSymptomEntries((previous) => previous.filter((entry) => entry.id !== id));
-  }, []);
+  const removeSymptomEntry = useCallback(
+    (id) => {
+      setEntries((current) => ({
+        ...current,
+        symptomEntries: current.symptomEntries.filter((entry) => entry.id !== id),
+      }));
+    },
+    [setEntries],
+  );
 
-  const upsertContextEntry = useCallback((entry) => {
-    setContextEntries((previous) => {
-      const existing = previous.findIndex((item) => item.date === entry.date);
-      if (existing === -1) return [...previous, { ...entry, id: `ctx-${entry.date}` }].sort((a, b) => a.date.localeCompare(b.date));
-      const copy = [...previous];
-      copy[existing] = { ...copy[existing], ...entry };
-      return copy;
-    });
-  }, []);
+  const upsertContextEntry = useCallback(
+    (entry) => {
+      setEntries((current) => {
+        const index = current.contextEntries.findIndex((item) => item.date === entry.date);
+
+        if (index === -1) {
+          return {
+            ...current,
+            contextEntries: [
+              ...current.contextEntries,
+              { ...entry, id: `ctx-${entry.date}`, user_id: SAMPLE_USER.id },
+            ].sort((a, b) => a.date.localeCompare(b.date)),
+          };
+        }
+
+        const next = [...current.contextEntries];
+        next[index] = { ...next[index], ...entry };
+        return { ...current, contextEntries: next };
+      });
+    },
+    [setEntries],
+  );
 
   const resetToSampleData = useCallback(() => {
-    setSymptomEntries(MOCK_SYMPTOM_ENTRIES);
-    setContextEntries(MOCK_CONTEXT_ENTRIES);
-  }, []);
+    setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
+  }, [setEntries]);
 
   const clearAllEntries = useCallback(() => {
-    setSymptomEntries([]);
-    setContextEntries([]);
-  }, []);
+    setEntries(EMPTY);
+  }, [setEntries]);
 
   const value = useMemo(
     () => ({

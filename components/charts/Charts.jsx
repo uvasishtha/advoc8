@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts";
 import { CHART_COLORS, SEVERITY_RAMP, seriesColor } from "@/lib/chart-theme";
-import { formatDate, formatDuration } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const AXIS = {

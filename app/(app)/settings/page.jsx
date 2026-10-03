@@ -28,7 +28,7 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, description, confirm
 }
 
 export default function SettingsPage() {
-  const { user, isReady, report, symptomEntries, contextEntries, resetToSampleData, clearAllEntries } =
+  const { user, report, symptomEntries, contextEntries, resetToSampleData, clearAllEntries } =
     useAdvoc8();
   const { draft, setAppointmentGoal } = useBriefDraft();
 
