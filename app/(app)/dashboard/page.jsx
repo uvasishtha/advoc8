@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Notice";
 import { Disclaimer } from "@/components/ui/Notice";
 import { SeverityTrendChart } from "@/components/charts/Charts";
+import { StreakPanel } from "@/components/streak/StreakPanel";
+import { buildStreak } from "@/lib/streak";
 import { formatDate, formatDuration, roundTo, todayIso } from "@/lib/format";
 
 function DashboardSkeleton() {
@@ -54,6 +56,9 @@ export default function DashboardPage() {
 
   const recent = [...symptomEntries].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
 
+  // Same entries, same rules as the track page. Reads nothing new.
+  const streak = buildStreak(symptomEntries, today);
+
   if (report.isEmpty) {
     return (
       <PageContainer>
@@ -85,6 +90,8 @@ export default function DashboardPage() {
         <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">{user.greeting}</h1>
         <p className="hint mt-1.5">{report.coverage}</p>
       </header>
+
+      {streak.hasStreak ? <StreakPanel streak={streak} /> : null}
 
       <Card tone="soft" className="p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-5">

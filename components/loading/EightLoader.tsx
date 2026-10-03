@@ -1,6 +1,7 @@
 "use client";
 
 import { LOADING_CONFIG } from "@/data/healthFacts";
+import { EIGHT_BOTTOM_LOOP, EIGHT_TOP_LOOP, EIGHT_VIEWBOX } from "@/lib/eight-mark";
 
 interface EightLoaderProps {
   /** Largest width of the 8 in pixels. It shrinks to fit narrow or short screens. */
@@ -10,15 +11,13 @@ interface EightLoaderProps {
   className?: string;
 }
 
-/** Upper loop of the 8, drawn as a full ellipse in a 120 x 164 viewBox. */
-const TOP_LOOP = "M60 12a27 34 0 1 1 0 68a27 34 0 1 1 0-68";
-
-/** Lower loop of the 8 — wider, so the figure sits on a wider base. */
-const BOTTOM_LOOP = "M60 76a31 38 0 1 1 0 76a31 38 0 1 1 0-76";
-
 /**
  * The ADVOC8 loading mark: an "8" that breathes, tilts, and shifts weight
  * between its two loops.
+ *
+ * The geometry is shared with the streak mark in components/streak, so the
+ * symbol a user watches while waiting is the same symbol they are rewarded
+ * with later.
  *
  * Purely decorative — it is hidden from assistive technology, and all motion is
  * switched off under prefers-reduced-motion (see globals.css).
@@ -39,14 +38,14 @@ export function EightLoader({
       style={style}
       className={`relative shrink-0 aspect-[120/164] ${className}`}
     >
-      <svg viewBox="0 0 120 164" className="eight-glow absolute inset-0 h-full w-full overflow-visible">
-        <path d={TOP_LOOP} className="eight-loop" />
-        <path d={BOTTOM_LOOP} className="eight-loop" />
+      <svg viewBox={EIGHT_VIEWBOX} className="eight-glow absolute inset-0 h-full w-full overflow-visible">
+        <path d={EIGHT_TOP_LOOP} className="eight-loop" />
+        <path d={EIGHT_BOTTOM_LOOP} className="eight-loop" />
       </svg>
-      <svg viewBox="0 0 120 164" className="relative h-full w-full overflow-visible">
+      <svg viewBox={EIGHT_VIEWBOX} className="relative h-full w-full overflow-visible">
         <g className="eight-figure">
-          <path d={TOP_LOOP} className="eight-loop eight-loop-top" />
-          <path d={BOTTOM_LOOP} className="eight-loop eight-loop-bottom" />
+          <path d={EIGHT_TOP_LOOP} className="eight-loop eight-loop-top" />
+          <path d={EIGHT_BOTTOM_LOOP} className="eight-loop eight-loop-bottom" />
         </g>
       </svg>
     </div>

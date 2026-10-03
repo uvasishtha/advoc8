@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, NotebookPen, Trash2, X } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { NotebookPen, Trash2 } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
@@ -10,42 +10,10 @@ import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/Notice";
 import { SymptomForm } from "@/components/track/SymptomForm";
+import { StreakNotice } from "@/components/streak/StreakNotice";
 import { SeverityTrendChart, SymptomCalendar } from "@/components/charts/Charts";
-import { formatDate, formatDuration } from "@/lib/format";
-
-/**
- * Confirmation for a saved entry. The log, the charts and the dashboard all
- * update from the same state change, so this only has to say that it worked.
- */
-function SaveSuccess({ notice, onDismiss }) {
-  useEffect(() => {
-    const timer = setTimeout(onDismiss, 8000);
-    return () => clearTimeout(timer);
-  }, [notice, onDismiss]);
-
-  return (
-    <Card tone="soft" className="flex flex-wrap items-start gap-3 p-4" role="status">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success-soft text-success">
-        <Check size={16} aria-hidden="true" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="font-semibold text-foreground">Entry saved</p>
-        <p className="hint mt-0.5">
-          Your {notice.symptom.toLowerCase()} entry was added to your tracking history for{" "}
-          {formatDate(notice.date)}. Your metrics and Evidence Brief are already updated.
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={onDismiss}
-        className="rounded-full p-1.5 text-muted transition-colors hover:bg-secondary-bg hover:text-foreground"
-      >
-        <X size={15} aria-hidden="true" />
-        <span className="sr-only">Dismiss confirmation</span>
-      </button>
-    </Card>
-  );
-}
+import { buildStreak } from "@/lib/streak";
+import { formatDate, formatDuration, todayIso } from "@/lib/format";
 
 function TrackSkeleton() {
   return (
@@ -88,6 +56,13 @@ export default function TrackPage() {
     [sorted, filter],
   );
 
+  // Recomputed from the same entries the rest of the page reads, so the streak
+  // can never drift from the log. Saving a new entry updates it immediately.
+  const streak = useMemo(
+    () => buildStreak(symptomEntries, todayIso()),
+    [symptomEntries],
+  );
+
   if (!isReady) return <TrackSkeleton />;
 
   function handleSaveSymptom(entry) {
@@ -113,7 +88,7 @@ export default function TrackPage() {
       </header>
 
       {savedEntry ? (
-        <SaveSuccess notice={savedEntry} onDismiss={dismissSavedEntry} />
+        <StreakNotice entry={savedEntry} streak={streak} onDismiss={dismissSavedEntry} />
       ) : null}
 
       {report.isEmpty ? (
