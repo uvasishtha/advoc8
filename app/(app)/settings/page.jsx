@@ -142,7 +142,8 @@ export default function SettingsPage() {
         <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {[
             ["Tracking period", report.range?.label ?? "—"],
-            ["Days logged", report.range?.daysLogged ?? 0],
+            ["Days reported", report.range?.daysLogged ?? 0],
+            ["Days with sleep/stress", report.range?.daysWithContext ?? 0],
             ["Total entries", report.range?.entryCount ?? 0],
           ].map(([term, value]) => (
             <div key={term} className="rounded-lg bg-secondary-bg p-3">

@@ -38,6 +38,9 @@ export function OverviewSection({ report, user }) {
           value={report.range.daysLogged}
           unit="of"
           label={`Days reported across ${report.range.totalDays}`}
+          hint={`Context recorded on ${report.range.daysWithContext} ${
+            report.range.daysWithContext === 1 ? "day" : "days"
+          }`}
         />
         <Stat
           value={report.symptoms.length}

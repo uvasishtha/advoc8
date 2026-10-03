@@ -103,7 +103,7 @@ export default function DashboardPage() {
             <p className="hint mt-1">
               {briefLocked
                 ? access.features[FEATURE_IDS.BRIEF].message
-                : `${report.range.entryCount} entries across ${report.range.daysLogged} days`}
+                : `${report.range.entryCount} entries on ${report.range.daysLogged} of ${report.range.totalDays} days`}
             </p>
           </div>
           <GatedButton featureId={FEATURE_IDS.BRIEF} href="/brief">
