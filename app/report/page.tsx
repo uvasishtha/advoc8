@@ -4,46 +4,31 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Disclaimer } from "@/components/ui/Disclaimer";
 import { mockSymptoms, mockConditions, mockQuestions } from "@/lib/mockData";
 
 export default function ReportPage() {
-  const uniqueSymptoms = Array.from(new Set(mockSymptoms.map((s) => s.symptom)));
   const symptomCounts: Record<string, number> = {};
-  mockSymptoms.forEach((s) => {
-    symptomCounts[s.symptom] = (symptomCounts[s.symptom] || 0) + 1;
-  });
-  const sortedSymptoms = Object.entries(symptomCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
+  mockSymptoms.forEach((s) => { symptomCounts[s.symptom] = (symptomCounts[s.symptom] || 0) + 1; });
+  const sortedSymptoms = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const daysAffected = mockSymptoms.filter((s) => s.impact !== "Little/no impact").length;
   const daysMissed = mockSymptoms.filter((s) => s.impact.includes("missed")).length;
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-serif text-3xl font-semibold mb-1">
-          Your health summary
-        </h1>
-        <p className="text-muted">
-          A concise record you can bring to a healthcare visit.
-        </p>
+        <h1 className="font-serif text-3xl font-semibold mb-1">Your health summary</h1>
+        <p className="text-muted">A concise record you can bring to a healthcare visit.</p>
       </div>
 
       <div className="flex items-center gap-4">
         <Button>Download report</Button>
-        <Link href="/home">
-          <Button variant="secondary">Back to home</Button>
-        </Link>
+        <Link href="/home"><Button variant="secondary">Back to home</Button></Link>
       </div>
 
       <Card className="border-2 border-border">
         <div className="text-center mb-8 pb-6 border-b border-border">
           <h2 className="font-serif text-2xl font-semibold mb-1">Advoc8 Health Summary</h2>
-          <p className="text-sm text-muted">
-            Generated on {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-          </p>
+          <p className="text-sm text-muted">Generated on {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
         </div>
 
         <div className="space-y-8">
@@ -52,9 +37,7 @@ export default function ReportPage() {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-xs text-muted uppercase tracking-wider mb-1">Date range</p>
-                <p className="text-sm font-medium">
-                  {mockSymptoms[mockSymptoms.length - 1]?.date} — {mockSymptoms[0]?.date}
-                </p>
+                <p className="text-sm font-medium">{mockSymptoms[mockSymptoms.length - 1]?.date} — {mockSymptoms[0]?.date}</p>
               </div>
               <div>
                 <p className="text-xs text-muted uppercase tracking-wider mb-1">Symptoms logged</p>
@@ -62,7 +45,7 @@ export default function ReportPage() {
               </div>
               <div>
                 <p className="text-xs text-muted uppercase tracking-wider mb-1">Unique symptoms</p>
-                <p className="text-sm font-medium">{uniqueSymptoms.length}</p>
+                <p className="text-sm font-medium">{new Set(mockSymptoms.map((s) => s.symptom)).size}</p>
               </div>
             </div>
           </div>
@@ -119,10 +102,7 @@ export default function ReportPage() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-border">
-          <Disclaimer>
-            These are not diagnoses. This summary is intended to support
-            conversation with a qualified healthcare professional.
-          </Disclaimer>
+          <p className="text-sm text-muted text-center">These are not diagnoses. This summary is intended to support conversation with a qualified healthcare professional.</p>
         </div>
       </Card>
     </div>
