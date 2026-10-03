@@ -87,7 +87,7 @@ export function BeforeAppointment({ report, user, statement, questions, appointm
               </li>
             ))}
             {questions.length === 0 ? (
-              <li className="hint">No questions added yet. Generate some in section 07.</li>
+              <li className="hint">No questions added yet. Generate some in section 08.</li>
             ) : null}
           </ol>
 
