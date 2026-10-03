@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, NotebookPen, Trash2, X } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
@@ -71,6 +71,7 @@ export default function TrackPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [filter, setFilter] = useState("all");
   const [savedEntry, setSavedEntry] = useState(null);
+  const dismissSavedEntry = useCallback(() => setSavedEntry(null), []);
 
   const contextByDate = useMemo(
     () => new Map(contextEntries.map((entry) => [entry.date, entry])),
@@ -112,7 +113,7 @@ export default function TrackPage() {
       </header>
 
       {savedEntry ? (
-        <SaveSuccess notice={savedEntry} onDismiss={() => setSavedEntry(null)} />
+        <SaveSuccess notice={savedEntry} onDismiss={dismissSavedEntry} />
       ) : null}
 
       {report.isEmpty ? (
