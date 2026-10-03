@@ -36,7 +36,7 @@ const EMPTY = {
   recordContext: true,
 };
 
-export function SymptomForm({ onSaveSymptom, onSaveContext, existingContext }) {
+export function SymptomForm({ onSaveSymptom, onSaveContext, existingContext, showCycle = true }) {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
 
@@ -59,8 +59,13 @@ export function SymptomForm({ onSaveSymptom, onSaveContext, existingContext }) {
     if (!form.date) nextErrors.date = "Pick the day this happened.";
 
     const severity = Number(form.severity);
-    if (Number.isNaN(severity) || severity < 0 || severity > 10) {
-      nextErrors.severity = "Severity runs from 0 to 10.";
+    if (Number.isNaN(severity) || severity < 1 || severity > 10) {
+      nextErrors.severity = "Severity runs from 1 to 10.";
+    }
+
+    const duration = Number(form.duration);
+    if (Number.isNaN(duration) || duration < 5 || duration > 1440) {
+      nextErrors.duration = "Pick how long it lasted.";
     }
 
     const sleep = Number(form.sleepHours);
@@ -85,7 +90,7 @@ export function SymptomForm({ onSaveSymptom, onSaveContext, existingContext }) {
       symptom: symptomName,
       date: form.date,
       severity,
-      duration_minutes: Number(form.duration),
+      duration_minutes: duration,
       notes: form.notes.trim(),
       impact: form.impact,
     });
@@ -167,7 +172,7 @@ export function SymptomForm({ onSaveSymptom, onSaveContext, existingContext }) {
         label="Severity"
         value={form.severity}
         onChange={update("severity")}
-        min={0}
+        min={1}
         max={10}
         valueLabel={`${form.severity} / 10`}
         hint="Your own rating. There is no right number."
@@ -178,6 +183,7 @@ export function SymptomForm({ onSaveSymptom, onSaveContext, existingContext }) {
           label="How long did it last?"
           value={form.duration}
           onChange={update("duration")}
+          error={errors.duration}
           options={DURATION_PRESETS}
         />
         <SelectField
@@ -224,17 +230,19 @@ export function SymptomForm({ onSaveSymptom, onSaveContext, existingContext }) {
             disabled={!form.recordContext}
             options={STRESS_OPTIONS}
           />
-          <TextField
-            label="Cycle day (optional)"
-            type="number"
-            min="1"
-            max="45"
-            value={form.cycleDay}
-            onChange={update("cycleDay")}
-            error={errors.cycleDay}
-            disabled={!form.recordContext}
-            placeholder={existingContext?.cycle_day ? String(existingContext.cycle_day) : "e.g. 18"}
-          />
+          {showCycle ? (
+            <TextField
+              label="Cycle day (optional)"
+              type="number"
+              min="1"
+              max="45"
+              value={form.cycleDay}
+              onChange={update("cycleDay")}
+              error={errors.cycleDay}
+              disabled={!form.recordContext}
+              placeholder={existingContext?.cycle_day ? String(existingContext.cycle_day) : "e.g. 18"}
+            />
+          ) : null}
         </div>
 
         <label className="mt-4 flex items-center gap-2.5 text-sm text-muted">

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { NotebookPen, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, NotebookPen, Trash2, X } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +13,40 @@ import { SymptomForm } from "@/components/track/SymptomForm";
 import { SeverityTrendChart, SymptomCalendar } from "@/components/charts/Charts";
 import { formatDate, formatDuration } from "@/lib/format";
 
+/**
+ * Confirmation for a saved entry. The log, the charts and the dashboard all
+ * update from the same state change, so this only has to say that it worked.
+ */
+function SaveSuccess({ notice, onDismiss }) {
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 8000);
+    return () => clearTimeout(timer);
+  }, [notice, onDismiss]);
+
+  return (
+    <Card tone="soft" className="flex flex-wrap items-start gap-3 p-4" role="status">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success-soft text-success">
+        <Check size={16} aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-foreground">Entry saved</p>
+        <p className="hint mt-0.5">
+          Your {notice.symptom.toLowerCase()} entry was added to your tracking history for{" "}
+          {formatDate(notice.date)}. Your metrics and Evidence Brief are already updated.
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="rounded-full p-1.5 text-muted transition-colors hover:bg-secondary-bg hover:text-foreground"
+      >
+        <X size={15} aria-hidden="true" />
+        <span className="sr-only">Dismiss confirmation</span>
+      </button>
+    </Card>
+  );
+}
+
 function TrackSkeleton() {
   return (
     <PageContainer className="space-y-6">
@@ -23,11 +57,20 @@ function TrackSkeleton() {
 }
 
 export default function TrackPage() {
-  const { isReady, report, symptomEntries, contextEntries, addSymptomEntry, upsertContextEntry, removeSymptomEntry } =
-    useAdvoc8();
+  const {
+    isReady,
+    report,
+    symptomEntries,
+    contextEntries,
+    profile,
+    addSymptomEntry,
+    upsertContextEntry,
+    removeSymptomEntry,
+  } = useAdvoc8();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [savedEntry, setSavedEntry] = useState(null);
 
   const contextByDate = useMemo(
     () => new Map(contextEntries.map((entry) => [entry.date, entry])),
@@ -49,6 +92,7 @@ export default function TrackPage() {
   function handleSaveSymptom(entry) {
     addSymptomEntry(entry);
     setIsFormOpen(false);
+    setSavedEntry(entry);
   }
 
   return (
@@ -66,6 +110,10 @@ export default function TrackPage() {
           Log a symptom
         </Button>
       </header>
+
+      {savedEntry ? (
+        <SaveSuccess notice={savedEntry} onDismiss={() => setSavedEntry(null)} />
+      ) : null}
 
       {report.isEmpty ? (
         <EmptyState
@@ -214,6 +262,7 @@ export default function TrackPage() {
           onSaveSymptom={handleSaveSymptom}
           onSaveContext={upsertContextEntry}
           existingContext={contextByDate.get(sortEntriesDescending(symptomEntries)[0]?.date)}
+          showCycle={profile.tracksCycle}
         />
       </Modal>
     </PageContainer>

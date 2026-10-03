@@ -2,10 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, LayoutDashboard, NotebookPen, Settings, Sparkle } from "lucide-react";
+import {
+  FileText,
+  LayoutDashboard,
+  Lock,
+  NotebookPen,
+  Settings,
+  Sparkle,
+  User,
+} from "lucide-react";
 import { Logo } from "./Logo";
 import { cn } from "@/lib/utils";
-import { SAMPLE_USER } from "@/lib/seed/maya";
+import { FEATURE_IDS } from "@/lib/onboarding";
+import { useAdvoc8 } from "@/components/providers/DataProvider";
+import { SetupReminder } from "@/components/onboarding/SetupReminder";
+import { UnlockModal } from "@/components/onboarding/FeatureLock";
 
 const NAV_GROUPS = [
   {
@@ -18,8 +29,8 @@ const NAV_GROUPS = [
   {
     label: "Prepare",
     items: [
-      { href: "/brief", label: "Evidence Brief", icon: FileText },
-      { href: "/practice", label: "Practice", icon: Sparkle },
+      { href: "/brief", label: "Evidence Brief", icon: FileText, feature: FEATURE_IDS.BRIEF },
+      { href: "/practice", label: "Practice", icon: Sparkle, feature: FEATURE_IDS.PRACTICE },
     ],
   },
 ];
@@ -28,6 +39,20 @@ const ALL_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
 
 export function AppShell({ children }) {
   const pathname = usePathname();
+  const { user, access, isReady, isReminderDismissed, dismissReminder } = useAdvoc8();
+
+  const isSetupRoute = pathname.startsWith("/setup");
+  const showReminder = isReady && access.needsSetup && !isReminderDismissed && !isSetupRoute;
+
+  function navClass(active, locked) {
+    return cn(
+      "flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+      active
+        ? "bg-accent-soft text-accent-strong"
+        : "text-muted hover:bg-secondary-bg hover:text-foreground",
+      locked && "opacity-70",
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -50,20 +75,16 @@ export function AppShell({ children }) {
               <ul className="space-y-1">
                 {group.items.map((item) => {
                   const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  const locked = isReady && item.feature && !access.features[item.feature].unlocked;
                   return (
                     <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        aria-current={active ? "page" : undefined}
-                        className={cn(
-                          "flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors",
-                          active
-                            ? "bg-accent-soft text-accent-strong"
-                            : "text-muted hover:bg-secondary-bg hover:text-foreground",
-                        )}
-                      >
+                      <Link href={item.href} aria-current={active ? "page" : undefined} className={navClass(active, locked)}>
                         <item.icon size={17} aria-hidden="true" />
                         {item.label}
+                        {locked ? (
+                          <Lock size={13} className="ml-auto text-muted" aria-hidden="true" />
+                        ) : null}
+                        {locked ? <span className="sr-only">(locked)</span> : null}
                       </Link>
                     </li>
                   );
@@ -77,31 +98,31 @@ export function AppShell({ children }) {
           <Link
             href="/settings"
             aria-current={pathname === "/settings" ? "page" : undefined}
-            className={cn(
-              "flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors",
-              pathname === "/settings"
-                ? "bg-accent-soft text-accent-strong"
-                : "text-muted hover:bg-secondary-bg hover:text-foreground",
-            )}
+            className={navClass(pathname === "/settings")}
           >
             <Settings size={17} aria-hidden="true" />
             Settings
           </Link>
 
-          <div className="mt-3 flex items-center gap-3 rounded-full bg-secondary-bg px-3 py-2">
+          <Link
+            href="/setup"
+            className="mt-3 flex items-center gap-3 rounded-full bg-secondary-bg px-3 py-2 transition-colors hover:bg-accent-soft"
+          >
             <span
               aria-hidden="true"
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-foreground"
             >
-              MR
+              {user.initials ? user.initials : <User size={14} />}
             </span>
             <span className="min-w-0">
               <span className="block truncate text-sm font-medium text-foreground">
-                {SAMPLE_USER.displayName}
+                {user.displayName}
               </span>
-              <span className="block truncate text-xs text-muted">Prototype account</span>
+              <span className="block truncate text-xs text-muted">
+                {access.setupComplete ? "Profile set up" : "Setup not finished"}
+              </span>
             </span>
-          </div>
+          </Link>
         </div>
       </aside>
 
@@ -117,6 +138,7 @@ export function AppShell({ children }) {
           <nav aria-label="Main" className="flex gap-1 overflow-x-auto px-3 pb-3">
             {ALL_ITEMS.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const locked = isReady && item.feature && !access.features[item.feature].unlocked;
               return (
                 <Link
                   key={item.href}
@@ -131,16 +153,21 @@ export function AppShell({ children }) {
                 >
                   <item.icon size={15} aria-hidden="true" />
                   {item.label}
+                  {locked ? <Lock size={12} aria-hidden="true" /> : null}
                 </Link>
               );
             })}
           </nav>
         </header>
 
+        {showReminder ? <SetupReminder onDismiss={dismissReminder} /> : null}
+
         <main id="main" className="min-w-0 flex-1">
           {children}
         </main>
       </div>
+
+      <UnlockModal />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, RotateCcw, Trash2 } from "lucide-react";
+import { Download, RotateCcw, Trash2, UserRound } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +11,8 @@ import { Modal } from "@/components/ui/Modal";
 import { TextArea } from "@/components/ui/Field";
 import { Disclaimer } from "@/components/ui/Notice";
 import { useBriefDraft } from "@/lib/use-brief-draft";
+import { DAY_TO_DAY_OPTIONS, FIRST_NOTICED_OPTIONS } from "@/lib/onboarding";
+import { formatDate } from "@/lib/format";
 
 function ConfirmDialog({ isOpen, onClose, onConfirm, title, description, confirmLabel }) {
   return (
@@ -27,9 +29,21 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, description, confirm
   );
 }
 
+function optionLabel(options, value) {
+  return options.find((option) => option.value === value)?.label ?? "—";
+}
+
 export default function SettingsPage() {
-  const { user, report, symptomEntries, contextEntries, resetToSampleData, clearAllEntries } =
-    useAdvoc8();
+  const {
+    user,
+    access,
+    report,
+    symptomEntries,
+    contextEntries,
+    resetToSampleData,
+    clearAllEntries,
+    startFresh,
+  } = useAdvoc8();
   const { draft, setAppointmentGoal } = useBriefDraft();
 
   const [pendingAction, setPendingAction] = useState(null);
@@ -47,11 +61,20 @@ export default function SettingsPage() {
       </header>
 
       <Card className="p-5 sm:p-6">
-        <CardHeader title="Account" description="This prototype runs on a shared sample account." />
+        <CardHeader
+          title="Your profile"
+          description="What Advoc8 knows about you. It comes from your setup survey, nothing else."
+          action={
+            <Badge tone={access.setupComplete ? "success" : "warning"}>
+              {access.setupComplete ? "Setup complete" : "Setup not finished"}
+            </Badge>
+          }
+        />
+
         <dl className="mt-5 space-y-3">
           {[
             ["Name", user.displayName],
-            ["Email", user.email],
+            ["Email", user.email ?? "Not set — this prototype stores nothing on a server"],
             ["Account type", "Prototype — sign-in is not enforced"],
           ].map(([term, value]) => (
             <div key={term} className="flex justify-between gap-4 border-b border-border pb-3 last:border-0">
@@ -60,6 +83,34 @@ export default function SettingsPage() {
             </div>
           ))}
         </dl>
+
+        <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+          {[
+            ["First noticed", optionLabel(FIRST_NOTICED_OPTIONS, user.firstNoticed)],
+            ["Day-to-day impact", optionLabel(DAY_TO_DAY_OPTIONS, user.dayToDay)],
+            ["Symptoms reported", user.symptoms.join(", ") || "—"],
+            [
+              "Cycle tracking",
+              user.tracksCycle
+                ? `Yes${user.cycleLength ? ` · ${user.cycleLength}-day cycle` : ""}${
+                    user.lastPeriodStart ? ` · last started ${formatDate(user.lastPeriodStart)}` : ""
+                  }`
+                : "No",
+            ],
+          ].map(([term, value]) => (
+            <div key={term} className="rounded-lg bg-secondary-bg p-3">
+              <dt className="hint">{term}</dt>
+              <dd className="mt-0.5 text-sm font-medium text-foreground">{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="mt-5">
+          <Button href="/setup" variant="outline">
+            <UserRound size={16} aria-hidden="true" />
+            {access.setupComplete ? "Redo setup" : "Complete Setup"}
+          </Button>
+        </div>
       </Card>
 
       <Card className="p-5 sm:p-6">
@@ -108,13 +159,30 @@ export default function SettingsPage() {
               setPendingAction({
                 run: resetToSampleData,
                 title: "Restore sample data?",
-                description: "Your current entries will be replaced with the September sample set.",
+                description:
+                  "Maya R's September tracking and profile will replace what is in this browser.",
                 confirmLabel: "Restore sample data",
               })
             }
           >
             <RotateCcw size={16} aria-hidden="true" />
             Restore sample data
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() =>
+              setPendingAction({
+                run: startFresh,
+                title: "Start over as a new user?",
+                description:
+                  "Everything goes: your profile, every entry, and your statement and questions. You will be asked to set up again.",
+                confirmLabel: "Start over",
+              })
+            }
+          >
+            <UserRound size={16} aria-hidden="true" />
+            Start a new profile
           </Button>
 
           <Button
