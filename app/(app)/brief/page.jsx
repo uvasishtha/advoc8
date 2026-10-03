@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Lock, Printer } from "lucide-react";
+import { FileText, Lock } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { FeatureLock } from "@/components/onboarding/FeatureLock";
@@ -11,6 +11,7 @@ import { Section } from "@/components/ui/Section";
 import { EmptyState } from "@/components/ui/Notice";
 import { Disclaimer } from "@/components/ui/Notice";
 import { useBriefDraft } from "@/lib/use-brief-draft";
+import { PrintDoctorSummaryButton } from "@/components/brief/PrintDoctorSummaryButton";
 import {
   ChangesSection,
   OverviewSection,
@@ -58,10 +59,7 @@ export default function BriefPage() {
         {!isLocked && !report.isEmpty ? (
           <div className="flex flex-wrap gap-2">
             <Badge tone="accent">{report.range.entryCount} entries</Badge>
-            <Button size="sm" variant="outline" onClick={() => window.print()}>
-              <Printer size={15} aria-hidden="true" />
-              Print
-            </Button>
+            <PrintDoctorSummaryButton report={report} user={user} draft={draft} />
           </div>
         ) : null}
       </header>
