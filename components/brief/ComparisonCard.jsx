@@ -70,19 +70,19 @@ export function ComparisonCard({ comparison, className }) {
     severityOutsideFactor,
     severityDelta,
     severityDiffers,
+    hasSeverityData,
     daysWithFactor,
     daysOutsideFactor,
     factorRate,
     outsideRate,
     rateDelta,
     frequencyDiffers,
+    hasFrequencyData,
     headline,
     caveat,
   } = comparison;
 
   const standout = severityDiffers || frequencyDiffers;
-  const gap = Math.abs(severityDelta ?? rateDelta ?? 0);
-  const direction = (severityDelta ?? rateDelta ?? 0) > 0 ? "higher" : "lower";
 
   return (
     <Card className={cn("p-5", standout && "border-accent-muted bg-accent-soft/40", className)}>
@@ -100,7 +100,7 @@ export function ComparisonCard({ comparison, className }) {
       <p className="font-serif text-lg leading-snug text-foreground">{headline}</p>
 
       <div className="mt-4 space-y-2.5">
-        {severityDelta != null ? (
+        {hasSeverityData ? (
           <>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">
               Average severity
@@ -118,12 +118,17 @@ export function ComparisonCard({ comparison, className }) {
               value={`${roundTo(severityOutsideFactor.average)} / 10`}
               ratio={severityOutsideFactor.average / 10}
             />
-            <GapRow direction={direction} gap={roundTo(gap)} unit="points" noun="difference" />
+            <GapRow
+              direction={severityDelta > 0 ? "higher" : "lower"}
+              gap={roundTo(Math.abs(severityDelta))}
+              unit="points"
+              noun="difference"
+            />
           </>
         ) : null}
 
-        {rateDelta != null ? (
-          <div className={severityDelta != null ? "mt-5 space-y-2.5" : "space-y-2.5"}>
+        {hasFrequencyData ? (
+          <div className={hasSeverityData ? "mt-5 space-y-2.5" : "space-y-2.5"}>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">
               Days the symptom was logged
             </p>
@@ -153,7 +158,7 @@ export function ComparisonCard({ comparison, className }) {
       </div>
 
       <p className="mt-4 text-sm leading-relaxed text-muted">
-        Both groups come from days you recorded both the symptom and this factor, so the counts stay
+        Both groups come from days you recorded the symptom and this factor on, so the counts stay
         comparable.
       </p>
 

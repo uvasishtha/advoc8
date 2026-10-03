@@ -156,7 +156,7 @@ export function BriefPdf({ report, user, statement, questions, appointmentGoal }
             report.comparisons.map((comparison) => (
               <View key={comparison.id} style={styles.box}>
                 <Text>{comparison.headline}</Text>
-                {comparison.severityDelta != null ? (
+                {comparison.hasSeverityData ? (
                   <Text style={styles.metric}>
                     Severity {roundTo(comparison.severityWithFactor.average)} / 10 on{" "}
                     {comparison.severityWithFactor.days} {comparison.shortLabel} days vs{" "}
@@ -164,7 +164,7 @@ export function BriefPdf({ report, user, statement, questions, appointmentGoal }
                     {comparison.severityOutsideFactor.days} other days
                   </Text>
                 ) : null}
-                {comparison.rateDelta != null ? (
+                {comparison.hasFrequencyData ? (
                   <Text style={styles.metric}>
                     Logged on {Math.round(comparison.factorRate * 100)}% of {comparison.daysWithFactor}{" "}
                     {comparison.shortLabel} days vs {Math.round(comparison.outsideRate * 100)}% of{" "}
