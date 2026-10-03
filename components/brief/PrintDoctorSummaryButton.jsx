@@ -17,17 +17,27 @@ import { todayIso } from "@/lib/format";
  * browser's print dialog against it. The print stylesheet hides everything
  * else, so the only thing on paper is the summary.
  *
+ * `symptomEntries` supplies the descriptions the patient wrote against their
+ * worst days. It is optional: without it the sheet carries no descriptions
+ * rather than replacing them with generated text.
+ *
  * The node stays mounted after the dialog closes. That is deliberate: Safari
  * resolves print() asynchronously, so removing the sheet immediately can print a
  * blank page. On screen it is display:none, so it costs nothing.
  */
-export function PrintDoctorSummaryButton({ report, user, draft }) {
+export function PrintDoctorSummaryButton({ report, user, draft, symptomEntries }) {
   const [request, setRequest] = useState(null);
 
   const handlePrint = () => {
     setRequest((current) => ({
       id: (current?.id ?? 0) + 1,
-      summary: buildDoctorSummary({ report, user, draft, today: todayIso() }),
+      summary: buildDoctorSummary({
+        report,
+        user,
+        draft,
+        symptomEntries,
+        today: todayIso(),
+      }),
     }));
   };
 

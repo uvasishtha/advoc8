@@ -15,7 +15,7 @@
 
 function SectionHeading({ number, title, note }) {
   return (
-    <div className="mt-[7px] flex items-baseline gap-2 border-b border-[#D9D2D4] pb-[2px]">
+    <div className="mt-[5px] flex items-baseline gap-2 border-b border-[#D9D2D4] pb-[2px]">
       <span className="text-[7pt] font-semibold tracking-[0.1em] text-[#C4307F]">
         {number}
       </span>
@@ -29,9 +29,9 @@ function SectionHeading({ number, title, note }) {
 
 function Bullets({ items }) {
   return (
-    <ul className="mt-[3px] space-y-[2px]">
+    <ul className="mt-[3px] space-y-[1.5px]">
       {items.map((item, index) => (
-        <li key={index} className="flex gap-[6px] text-[8.5pt] leading-[1.32] text-[#1B1B1B]">
+        <li key={index} className="flex gap-[6px] text-[8.5pt] leading-[1.28] text-[#1B1B1B]">
           <span aria-hidden="true" className="mt-[4px] h-[2px] w-[6px] shrink-0 bg-[#C4307F]" />
           <span>{item}</span>
         </li>
@@ -41,7 +41,7 @@ function Bullets({ items }) {
 }
 
 function SymptomSnapshot({ snapshot }) {
-  const { rows, omitted, trackingDays } = snapshot;
+  const { rows, descriptions, omitted, trackingDays } = snapshot;
   if (rows.length === 0) return null;
 
   return (
@@ -57,13 +57,13 @@ function SymptomSnapshot({ snapshot }) {
       />
       <table className="mt-[3px] w-full border-collapse text-[8pt]">
         <thead>
-          <tr className="text-left text-[6.5pt] uppercase tracking-[0.08em] text-[#55504F]">
-            <th className="w-[27%] py-[2px] font-medium">Symptom</th>
-            <th className="py-[2px] font-medium">Days</th>
-            <th className="py-[2px] font-medium">Average</th>
-            <th className="py-[2px] font-medium">Highest</th>
-            <th className="w-[26%] py-[2px] font-medium">Typical duration</th>
-            <th className="py-[2px] font-medium">Last recorded</th>
+          <tr className="text-left text-[6.5pt] uppercase leading-[1.15] tracking-[0.06em] text-[#55504F]">
+            <th className="w-[25%] py-[2px] font-medium">Symptom</th>
+            <th className="w-[11%] py-[2px] font-medium">Days recorded</th>
+            <th className="w-[13%] py-[2px] font-medium">Average severity</th>
+            <th className="w-[13%] py-[2px] font-medium">Highest severity</th>
+            <th className="w-[22%] py-[2px] font-medium">Typical duration</th>
+            <th className="w-[16%] py-[2px] font-medium">Last recorded</th>
           </tr>
         </thead>
         <tbody>
@@ -74,12 +74,8 @@ function SymptomSnapshot({ snapshot }) {
                 {row.days}
                 {row.trackingDays ? ` / ${row.trackingDays}` : ""}
               </td>
-              <td className="py-[2.5px] tabular-nums text-[#1B1B1B]">
-                {row.avgSeverity == null ? "—" : `${row.avgSeverity} / 10`}
-              </td>
-              <td className="py-[2.5px] tabular-nums text-[#1B1B1B]">
-                {row.maxSeverity == null ? "—" : `${row.maxSeverity} / 10`}
-              </td>
+              <td className="py-[2.5px] tabular-nums text-[#1B1B1B]">{row.avgSeverity ?? "—"}</td>
+              <td className="py-[2.5px] tabular-nums text-[#1B1B1B]">{row.maxSeverity ?? "—"}</td>
               <td className="py-[2.5px] text-[#55504F]">{row.duration ?? "—"}</td>
               <td className="py-[2.5px] text-[#55504F]">{row.lastSeen || "—"}</td>
             </tr>
@@ -92,7 +88,38 @@ function SymptomSnapshot({ snapshot }) {
           period and {omitted === 1 ? "is" : "are"} not listed above.
         </p>
       ) : null}
+      <Descriptions descriptions={descriptions} />
     </section>
+  );
+}
+
+/**
+ * What the symptom felt like, in the patient's own words.
+ *
+ * These are quotations, not findings, so they are set in italic after a plain
+ * attribution and never merged into the numbers above them.
+ */
+function Descriptions({ descriptions }) {
+  if (!descriptions || descriptions.length === 0) return null;
+
+  return (
+    <div className="mt-[4px]">
+      <p className="text-[6.5pt] uppercase tracking-[0.08em] text-[#55504F]">
+        How it felt, in the patient&rsquo;s words
+      </p>
+      <ul className="mt-[2px] space-y-[1.5px]">
+        {descriptions.map((item) => (
+          <li key={item.symptom} className="flex gap-[5px] text-[8pt] leading-[1.28] text-[#1B1B1B]">
+            <span aria-hidden="true" className="mt-[4px] h-[2px] w-[5px] shrink-0 bg-[#C4307F]" />
+            <span>
+              <span className="font-semibold">{item.symptom}</span>
+              {item.date ? <span className="text-[#55504F]"> · {item.date}</span> : null}
+              <span className="italic"> — &ldquo;{item.note}&rdquo;</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -126,7 +153,8 @@ export function DoctorSummary({ summary }) {
 
   const hasContent =
     !summary.isEmpty &&
-    (snapshot.rows.length > 0 ||
+    ((snapshot?.rows?.length ?? 0) > 0 ||
+      (snapshot?.descriptions?.length ?? 0) > 0 ||
       trends.length > 0 ||
       patterns.length > 0 ||
       statement.length > 0 ||
@@ -177,14 +205,14 @@ export function DoctorSummary({ summary }) {
           <SymptomSnapshot snapshot={snapshot} />
 
           {trends.length > 0 ? (
-            <section className="mt-[7px]">
+            <section className="mt-[5px]">
               <SectionHeading number="3" title="Key Trends" />
               <Bullets items={trends} />
             </section>
           ) : null}
 
           {patterns.length > 0 ? (
-            <section className="mt-[7px]">
+            <section className="mt-[5px]">
               <SectionHeading number="4" title="Observed Patterns" />
               <Bullets items={patterns} />
               <p className="mt-[2px] text-[6.5pt] italic text-[#55504F]">
@@ -195,20 +223,20 @@ export function DoctorSummary({ summary }) {
           ) : null}
 
           {statement.length > 0 ? (
-            <section className="mt-[7px]">
+            <section className="mt-[5px]">
               <SectionHeading number="5" title="What I Want My Doctor to Know" />
               <Bullets items={statement} />
             </section>
           ) : null}
 
           {questions.length > 0 ? (
-            <section className="mt-[7px]">
+            <section className="mt-[5px]">
               <SectionHeading number="6" title="Questions for My Doctor" />
-              <ol className="mt-[3px] space-y-[2px]">
+              <ol className="mt-[3px] space-y-[1.5px]">
                 {questions.map((question, index) => (
                   <li
                     key={index}
-                    className="flex gap-[6px] text-[8.5pt] leading-[1.32] text-[#1B1B1B]"
+                    className="flex gap-[6px] text-[8.5pt] leading-[1.28] text-[#1B1B1B]"
                   >
                     <span className="font-semibold tabular-nums text-[#C4307F]">{index + 1}.</span>
                     <span>{question}</span>
@@ -219,7 +247,7 @@ export function DoctorSummary({ summary }) {
           ) : null}
 
           {context.length > 0 ? (
-            <section className="mt-[7px]">
+            <section className="mt-[5px]">
               <SectionHeading number="7" title="Relevant Context" />
               <ContextTable rows={context} />
             </section>
@@ -227,7 +255,7 @@ export function DoctorSummary({ summary }) {
         </>
       )}
 
-      <footer className="mt-[9px] border-t border-[#D9D2D4] pt-[3px]">
+      <footer className="mt-[6px] border-t border-[#D9D2D4] pt-[3px]">
         <p className="text-[6.5pt] leading-[1.3] text-[#55504F]">
           Patient-reported information. Advoc8 does not diagnose or provide medical treatment.
         </p>

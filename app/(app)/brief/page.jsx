@@ -34,7 +34,7 @@ function BriefSkeleton() {
 }
 
 export default function BriefPage() {
-  const { isReady, report, user, access } = useAdvoc8();
+  const { isReady, report, user, access, symptomEntries } = useAdvoc8();
   const { draft, isReady: isDraftReady, setStatement, setAppointmentGoal, setQuestions } =
     useBriefDraft();
 
@@ -60,7 +60,12 @@ export default function BriefPage() {
         {!isLocked && !report.isEmpty ? (
           <div className="flex flex-wrap gap-2">
             <Badge tone="accent">{report.range.entryCount} entries</Badge>
-            <PrintDoctorSummaryButton report={report} user={user} draft={draft} />
+            <PrintDoctorSummaryButton
+              report={report}
+              user={user}
+              draft={draft}
+              symptomEntries={symptomEntries}
+            />
           </div>
         ) : null}
       </header>
