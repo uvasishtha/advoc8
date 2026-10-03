@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/Card";
 import { mockSymptoms, mockProfile } from "@/lib/mockData";
 
 export default function HomePage() {
-  const recentSymptoms = mockSymptoms.slice(0, 3);
   const uniqueSymptoms = new Set(mockSymptoms.map((s) => s.symptom)).size;
   const avgSeverity = (
     mockSymptoms.reduce((sum, s) => sum + s.severity, 0) / mockSymptoms.length

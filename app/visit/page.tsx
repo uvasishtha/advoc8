@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { Modal } from "@/components/ui/Modal";
-import { Disclaimer } from "@/components/ui/Disclaimer";
+import { VisitModal } from "@/components/visit/VisitModal";
+import { DeleteDataModal } from "@/components/settings/DeleteDataModal";
 import { mockChecklist, mockQuestions, mockVisit } from "@/lib/mockData";
 import type { ChecklistItem, VisitEntry } from "@/lib/types";
 

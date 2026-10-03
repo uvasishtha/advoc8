@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Disclaimer } from "@/components/ui/Disclaimer";
-import { mockConditions, mockSymptoms } from "@/lib/mockData";
+import { mockConditions } from "@/lib/mockData";
 
 export default function InsightsPage() {
-  const allSymptoms = Array.from(new Set(mockSymptoms.map((s) => s.symptom)));
 
   return (
     <div className="space-y-8">

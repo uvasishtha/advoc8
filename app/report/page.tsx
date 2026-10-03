@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Disclaimer } from "@/components/ui/Disclaimer";
-import { mockSymptoms, mockProfile, mockConditions, mockVisit } from "@/lib/mockData";
+import { mockSymptoms, mockConditions } from "@/lib/mockData";
 
 export default function ReportPage() {
   const uniqueSymptoms = Array.from(new Set(mockSymptoms.map((s) => s.symptom)));

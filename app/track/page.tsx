@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
-import { Disclaimer } from "@/components/ui/Disclaimer";
 import { mockSymptoms } from "@/lib/mockData";
 import type { SymptomEntry } from "@/lib/types";
 
