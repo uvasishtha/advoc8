@@ -73,12 +73,13 @@ The brief includes:
 2. **Symptom Timeline**
 3. **Quantitative Trends**
 4. **Patterns in My Data**
-5. **Changes Over Time**
-6. **What I Want My Doctor to Know**
-7. **Questions I Want to Ask**
-8. **Before My Appointment**
+5. **Measured Differences**
+6. **Changes Over Time**
+7. **What I Want My Doctor to Know**
+8. **Questions I Want to Ask**
+9. **Before My Appointment**
 
-The brief can be downloaded and brought to a medical appointment.
+The brief can be downloaded as a PDF, or printed as a one-page Doctor Summary.
 
 ---
 
@@ -119,4 +120,55 @@ Second half: 7.0 / 10
 
 It could then surface:
 
-> **Observed pattern:** Headaches and shorter sleep f
+> **Measured difference:** Headache was logged on 73% of the 11 days you recorded fewer than
+> 6 hours of sleep, compared with 37% of the 19 other days you recorded sleep for.
+
+Both figures come from the user's own entries. Advoc8 reports the size of the gap and stops
+there — it does not claim that one produced the other.
+
+---
+
+## Getting Started
+
+```bash
+npm install
+cp .env.example .env.local   # optional: only needed for the AI features
+npm run dev
+```
+
+The app opens with **Open the sample brief** on the landing page, which loads Maya R's month of
+September 2026 tracking so every section has data in it. You can also log your own entries
+instead, or reset at any time from **Settings → Your data**.
+
+### Environment
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | no | Enables question generation and practice chat. |
+| `GEMINI_MODEL` | no | Defaults to `gemini-2.5-flash`. |
+
+Both AI features degrade gracefully: without a key, questions are generated from the report's own
+numbers and the practice rehearsal runs from a scripted script. Nothing breaks, but the responses
+are templated rather than written by a model.
+
+### Data
+
+Entries are stored in `localStorage` in the browser. There is no account and no server. A schema
+for a Postgres/Supabase backend is in `supabase/schema.sql`; it is not wired into the running app.
+
+### Tests
+
+```bash
+npm test        # analytics, onboarding, doctor summary, and the full
+                # survey -> log -> analysis -> report journey
+npm run lint
+npm run build
+```
+
+---
+
+## A Note on Language
+
+The analytics layer describes co-occurrence and never cause. Banned causal and diagnostic
+phrasings are listed in `lib/analytics/language.js` and asserted against the deterministic
+doctor summary in `lib/doctor-summary.test.js`.
