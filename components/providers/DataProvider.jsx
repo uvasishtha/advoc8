@@ -1,41 +1,74 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { buildReport } from "@/lib/analytics";
 import { todayIso } from "@/lib/format";
 import { createLocalStore, useLocalStore } from "@/lib/local-store";
-import { MOCK_CONTEXT_ENTRIES, MOCK_SYMPTOM_ENTRIES, SAMPLE_USER } from "@/lib/seed/maya";
+import {
+  EMPTY_ONBOARDING,
+  SAMPLE_ONBOARDING,
+  SETUP_STATUS,
+  buildAccess,
+  buildProfile,
+  normaliseSurvey,
+} from "@/lib/onboarding";
+import { MOCK_CONTEXT_ENTRIES, MOCK_SYMPTOM_ENTRIES, SAMPLE_APPOINTMENT_GOAL } from "@/lib/seed/maya";
+import { resetBriefDraft, seedBriefDraft } from "@/lib/use-brief-draft";
 
-const EMPTY = Object.freeze({ symptomEntries: [], contextEntries: [] });
+const EMPTY_ENTRIES = Object.freeze({ symptomEntries: [], contextEntries: [] });
+const LOCAL_USER_ID = "user-local";
 
-const entriesStore = createLocalStore("advoc8.entries.v1", EMPTY);
+const entriesStore = createLocalStore("advoc8.entries.v1", EMPTY_ENTRIES);
+const onboardingStore = createLocalStore("advoc8.onboarding.v1", EMPTY_ONBOARDING);
 
 const DataContext = createContext(null);
 
 /**
- * Holds the user's tracking rows and derives the report from them.
+ * The single source of truth for the prototype.
  *
- * The analytics run here over exactly the rows the user has logged. Nothing in
- * this provider asks a model for a statistic.
+ * Everything the app shows is derived here, in one place, from two stored
+ * records: the setup answers and the tracking rows.
+ *
+ *   onboarding answers -> profile -> access (what is unlocked) + brief header
+ *   tracking rows      -> report  -> dashboard, timeline, trends, patterns
+ *
+ * Nothing below recomputes a number or keeps its own copy. The analytics run
+ * over exactly the rows the user has logged; no model is asked for a statistic.
  *
  * Persistence is localStorage for the prototype. When Supabase is wired in,
- * only the store definition changes: point it at the route handlers and every
- * downstream component keeps working unchanged.
+ * only these two store definitions change: point them at route handlers and
+ * every downstream component keeps working unchanged.
  */
 export function DataProvider({ children }) {
-  const [entries, setEntries, isReady] = useLocalStore(entriesStore);
+  const [entries, setEntries, entriesReady] = useLocalStore(entriesStore);
+  const [onboarding, setOnboarding, onboardingReady] = useLocalStore(onboardingStore);
 
+  // Transient UI state: which lock was clicked, and whether the setup reminder
+  // was dismissed for this visit. Neither is worth persisting.
+  const [lockedFeatureId, setLockedFeatureId] = useState(null);
+  const [isReminderDismissed, setIsReminderDismissed] = useState(false);
+
+  const isReady = entriesReady && onboardingReady;
   const { symptomEntries, contextEntries } = entries;
 
+  const profile = useMemo(() => buildProfile(onboarding), [onboarding]);
+
   const report = useMemo(
-    () => buildReport({ symptomEntries, contextEntries }),
-    [symptomEntries, contextEntries],
+    () => buildReport({ symptomEntries, contextEntries, profile }),
+    [symptomEntries, contextEntries, profile],
   );
+
+  const access = useMemo(
+    () => buildAccess({ onboarding, symptomEntries }),
+    [onboarding, symptomEntries],
+  );
+
+  const lockedFeature = lockedFeatureId ? access.features[lockedFeatureId] ?? null : null;
 
   const addSymptomEntry = useCallback(
     (entry) => {
       const row = {
-        user_id: SAMPLE_USER.id,
+        user_id: LOCAL_USER_ID,
         ...entry,
         id: entry.id ?? `sym-${entry.date}-${entry.symptom}-${Date.now()}`,
       };
@@ -64,7 +97,7 @@ export function DataProvider({ children }) {
             ...current,
             contextEntries: [
               ...current.contextEntries,
-              { ...entry, id: `ctx-${entry.date}`, user_id: SAMPLE_USER.id },
+              { ...entry, id: `ctx-${entry.date}`, user_id: LOCAL_USER_ID },
             ].sort((a, b) => a.date.localeCompare(b.date)),
           };
         }
@@ -77,39 +110,119 @@ export function DataProvider({ children }) {
     [setEntries],
   );
 
+  /** Finishing the survey also writes the first version of the brief's own words. */
+  const completeOnboarding = useCallback(
+    (answers) => {
+      const clean = normaliseSurvey(answers);
+
+      setOnboarding((current) => ({
+        ...EMPTY_ONBOARDING,
+        ...current,
+        ...clean,
+        status: SETUP_STATUS.COMPLETED,
+        completedAt: new Date().toISOString(),
+        skippedAt: null,
+        source: "local",
+      }));
+
+      seedBriefDraft({ statement: clean.doctorNote });
+    },
+    [setOnboarding],
+  );
+
+  const skipOnboarding = useCallback(() => {
+    setOnboarding((current) => ({
+      ...EMPTY_ONBOARDING,
+      ...current,
+      status: SETUP_STATUS.SKIPPED,
+      skippedAt: new Date().toISOString(),
+    }));
+  }, [setOnboarding]);
+
   const resetToSampleData = useCallback(() => {
     setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
-  }, [setEntries]);
+    setOnboarding({ ...SAMPLE_ONBOARDING });
+    seedBriefDraft({
+      statement: SAMPLE_ONBOARDING.doctorNote,
+      appointmentGoal: SAMPLE_APPOINTMENT_GOAL,
+    });
+  }, [setEntries, setOnboarding]);
 
   const clearAllEntries = useCallback(() => {
-    setEntries(EMPTY);
+    setEntries(EMPTY_ENTRIES);
   }, [setEntries]);
+
+  /** Back to a brand new user: no answers, no entries, no draft. */
+  const startFresh = useCallback(() => {
+    setEntries(EMPTY_ENTRIES);
+    setOnboarding({ ...EMPTY_ONBOARDING });
+    resetBriefDraft();
+    setIsReminderDismissed(false);
+  }, [setEntries, setOnboarding]);
+
+  /**
+   * Called by anything that wants to open a gated feature. Returns false when
+   * the feature is locked, in which case the caller shows the explanation modal
+   * instead of navigating. A locked button is never a dead button.
+   */
+  const requestFeature = useCallback(
+    (featureId) => {
+      const feature = access.features[featureId];
+      if (!feature || feature.unlocked) return true;
+      setLockedFeatureId(featureId);
+      return false;
+    },
+    [access],
+  );
+
+  const closeFeaturePrompt = useCallback(() => setLockedFeatureId(null), []);
 
   const value = useMemo(
     () => ({
-      user: SAMPLE_USER,
+      user: profile,
+      profile,
+      onboarding,
       isReady,
       isLoading: !isReady,
       symptomEntries,
       contextEntries,
       report,
+      access,
+      lockedFeature,
       addSymptomEntry,
       removeSymptomEntry,
       upsertContextEntry,
+      completeOnboarding,
+      skipOnboarding,
       resetToSampleData,
       clearAllEntries,
+      startFresh,
+      requestFeature,
+      closeFeaturePrompt,
+      dismissReminder: () => setIsReminderDismissed(true),
+      isReminderDismissed,
       today: todayIso(),
     }),
     [
+      profile,
+      onboarding,
       isReady,
       symptomEntries,
       contextEntries,
       report,
+      access,
+      lockedFeature,
       addSymptomEntry,
       removeSymptomEntry,
       upsertContextEntry,
+      completeOnboarding,
+      skipOnboarding,
       resetToSampleData,
       clearAllEntries,
+      startFresh,
+      requestFeature,
+      closeFeaturePrompt,
+      isReminderDismissed,
     ],
   );
 
