@@ -13,7 +13,7 @@ export function Badge({
 }: BadgeProps) {
   const variants = {
     default: "bg-secondary-bg text-foreground border-border",
-    accent: "bg-accent/10 text-accent border-accent/20",
+    accent: "bg-accent/10 text-accent-dark border-accent/20",
     warning: "bg-warning/10 text-warning border-warning/20",
     muted: "bg-secondary-bg text-muted border-border",
   };
