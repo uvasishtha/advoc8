@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Newsreader, DM_Sans } from "next/font/google";
+import { AppSidebar } from "@/components/layout/AppSidebar";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -19,16 +20,21 @@ export const metadata: Metadata = {
   description: "Track your symptoms, understand patterns, and advocate for your health.",
 };
 
+const dashboardRoutes = ["/home", "/track", "/insights", "/visit", "/report", "/settings"];
+
 export default function RootLayout({
   children,
 }: LayoutProps<"/">) {
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+  const isDashboard = dashboardRoutes.some((route) => pathname.startsWith(route));
+
   return (
     <html
       lang="en"
       className={`${newsreader.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
+        {isDashboard ? <AppSidebar>{children}</AppSidebar> : children}
       </body>
     </html>
   );

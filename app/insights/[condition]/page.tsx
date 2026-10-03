@@ -57,7 +57,7 @@ export default function ConditionDetailPage({
                 height="20"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#65745C"
+                stroke="#C98B8B"
                 strokeWidth="2"
               >
                 <polyline points="20 6 9 17 4 12" />

@@ -178,7 +178,7 @@ export default function OnboardingPage() {
                         transition-colors text-left
                         ${
                           profile.previousDiagnoses?.includes(condition)
-                            ? "bg-accent/10 text-accent border-accent/20"
+                            ? "bg-accent/10 text-accent-dark border-accent/20"
                             : "border-border hover:bg-secondary-bg"
                         }
                       `}
@@ -205,7 +205,7 @@ export default function OnboardingPage() {
                         transition-colors text-left
                         ${
                           profile.previousSurgeries?.includes(surgery)
-                            ? "bg-accent/10 text-accent border-accent/20"
+                            ? "bg-accent/10 text-accent-dark border-accent/20"
                             : "border-border hover:bg-secondary-bg"
                         }
                       `}
@@ -286,7 +286,7 @@ export default function OnboardingPage() {
                     transition-colors text-left
                     ${
                       profile.familyHistory?.includes(item)
-                        ? "bg-accent/10 text-accent border-accent/20"
+                        ? "bg-accent/10 text-accent-dark border-accent/20"
                         : "border-border hover:bg-secondary-bg"
                     }
                   `}
@@ -339,7 +339,7 @@ export default function OnboardingPage() {
                     transition-colors text-left
                     ${
                       profile.environmentalFactors?.includes(item)
-                        ? "bg-accent/10 text-accent border-accent/20"
+                        ? "bg-accent/10 text-accent-dark border-accent/20"
                         : "border-border hover:bg-secondary-bg"
                     }
                   `}
@@ -397,7 +397,7 @@ export default function OnboardingPage() {
                     transition-colors text-left
                     ${
                       profile.symptoms?.includes(symptom)
-                        ? "bg-accent/10 text-accent border-accent/20"
+                        ? "bg-accent/10 text-accent-dark border-accent/20"
                         : "border-border hover:bg-secondary-bg"
                     }
                   `}

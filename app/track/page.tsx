@@ -190,14 +190,14 @@ function SymptomChart({ symptoms }: { symptoms: SymptomEntry[] }) {
           const y = 180 - point.severity * 16;
           return (
             <g key={i}>
-              <circle cx={x} cy={y} r="4" fill="#65745C" />
+              <circle cx={x} cy={y} r="4" fill="#C98B8B" />
               <title>{`${point.date}: ${point.symptom} ${point.severity}/10`}</title>
             </g>
           );
         })}
         <polyline
           fill="none"
-          stroke="#65745C"
+          stroke="#C98B8B"
           strokeWidth="2"
           points={chartData
             .map((point, i) => {
