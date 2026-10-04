@@ -12,8 +12,13 @@ import {
   buildProfile,
   normaliseSurvey,
 } from "@/lib/onboarding";
-import { MOCK_CONTEXT_ENTRIES, MOCK_SYMPTOM_ENTRIES, SAMPLE_APPOINTMENT_GOAL } from "@/lib/seed/maya";
-import { resetBriefDraft, seedBriefDraft } from "@/lib/use-brief-draft";
+import {
+  MOCK_CONTEXT_ENTRIES,
+  MOCK_SYMPTOM_ENTRIES,
+  SAMPLE_APPOINTMENT_GOAL,
+  SAMPLE_GOAL_IDS,
+} from "@/lib/seed/maya";
+import { draftStore, resetBriefDraft, seedBriefDraft } from "@/lib/use-brief-draft";
 
 const EMPTY_ENTRIES = Object.freeze({ symptomEntries: [], contextEntries: [] });
 const LOCAL_USER_ID = "user-local";
@@ -26,41 +31,73 @@ const DataContext = createContext(null);
 /**
  * The single source of truth for the prototype.
  *
- * Everything the app shows is derived here, in one place, from two stored
- * records: the setup answers and the tracking rows.
+ * Everything the app shows is derived here, in one place, from three stored
+ * records: the setup answers, the tracking rows, and the words the user wrote
+ * for themselves.
  *
  *   onboarding answers -> profile -> access (what is unlocked) + brief header
- *   tracking rows      -> report  -> dashboard, timeline, trends, patterns
+ *   tracking rows      -> report  -> what you've experienced, noticed, missing
+ *   the brief draft    -> statement, goal and questions, which are editable
  *
  * Nothing below recomputes a number or keeps its own copy. The analytics run
  * over exactly the rows the user has logged; no model is asked for a statistic.
+ * The statement is passed into the report because a brief that already says what
+ * the user wants does not need to flag it as missing.
  *
  * Persistence is localStorage for the prototype. When Supabase is wired in,
- * only these two store definitions change: point them at route handlers and
- * every downstream component keeps working unchanged.
+ * only the store definitions change: point them at route handlers and every
+ * downstream component keeps working unchanged.
  */
 export function DataProvider({ children }) {
   const [entries, setEntries, entriesReady] = useLocalStore(entriesStore);
   const [onboarding, setOnboarding, onboardingReady] = useLocalStore(onboardingStore);
+  const [draft, setDraft, draftReady] = useLocalStore(draftStore);
 
   // Transient UI state: which lock was clicked, and whether the setup reminder
   // was dismissed for this visit. Neither is worth persisting.
   const [lockedFeatureId, setLockedFeatureId] = useState(null);
   const [isReminderDismissed, setIsReminderDismissed] = useState(false);
 
-  const isReady = entriesReady && onboardingReady;
+  const isReady = entriesReady && onboardingReady && draftReady;
   const { symptomEntries, contextEntries } = entries;
 
   const profile = useMemo(() => buildProfile(onboarding), [onboarding]);
 
   const report = useMemo(
-    () => buildReport({ symptomEntries, contextEntries, profile }),
-    [symptomEntries, contextEntries, profile],
+    () => buildReport({ symptomEntries, contextEntries, profile, statement: draft.statement }),
+    [symptomEntries, contextEntries, profile, draft.statement],
   );
 
   const access = useMemo(
     () => buildAccess({ onboarding, symptomEntries }),
     [onboarding, symptomEntries],
+  );
+
+  const setStatement = useCallback(
+    (statement) => setDraft((current) => ({ ...current, statement })),
+    [setDraft],
+  );
+
+  const setAppointmentGoal = useCallback(
+    (appointmentGoal) => setDraft((current) => ({ ...current, appointmentGoal })),
+    [setDraft],
+  );
+
+  const setQuestions = useCallback(
+    (questions) => setDraft((current) => ({ ...current, questions })),
+    [setDraft],
+  );
+
+  /** Ticking a goal is a toggle, so the whole list is written each time. */
+  const toggleGoal = useCallback(
+    (goalId) =>
+      setDraft((current) => ({
+        ...current,
+        goalIds: current.goalIds.includes(goalId)
+          ? current.goalIds.filter((id) => id !== goalId)
+          : [...current.goalIds, goalId],
+      })),
+    [setDraft],
   );
 
   const lockedFeature = lockedFeatureId ? access.features[lockedFeatureId] ?? null : null;
@@ -161,6 +198,7 @@ export function DataProvider({ children }) {
         seedBriefDraft({
           statement: SAMPLE_ONBOARDING.doctorNote,
           appointmentGoal: SAMPLE_APPOINTMENT_GOAL,
+          goalIds: SAMPLE_GOAL_IDS,
         });
         return;
       }
@@ -214,6 +252,11 @@ export function DataProvider({ children }) {
       report,
       access,
       lockedFeature,
+      draft,
+      setStatement,
+      setAppointmentGoal,
+setQuestions,
+      toggleGoal,
       addSymptomEntry,
       removeSymptomEntry,
       upsertContextEntry,
@@ -227,7 +270,7 @@ export function DataProvider({ children }) {
       dismissReminder: () => setIsReminderDismissed(true),
       isReminderDismissed,
       today: todayIso(),
-    }),
+    ]),
     [
       profile,
       onboarding,
@@ -237,6 +280,11 @@ export function DataProvider({ children }) {
       report,
       access,
       lockedFeature,
+      draft,
+      setStatement,
+      setAppointmentGoal,
+      setQuestions,
+      toggleGoal,
       addSymptomEntry,
       removeSymptomEntry,
       upsertContextEntry,

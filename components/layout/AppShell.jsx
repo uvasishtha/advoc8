@@ -2,15 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  FileText,
-  LayoutDashboard,
-  Lock,
-  NotebookPen,
-  Settings,
-  Sparkle,
-  User,
-} from "lucide-react";
+import { ClipboardList, House, Lock, NotebookPen, Settings, User } from "lucide-react";
 import { Logo } from "./Logo";
 import { cn } from "@/lib/utils";
 import { FEATURE_IDS } from "@/lib/onboarding";
@@ -18,24 +10,14 @@ import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { SetupReminder } from "@/components/onboarding/SetupReminder";
 import { UnlockModal } from "@/components/onboarding/FeatureLock";
 
-const NAV_GROUPS = [
-  {
-    label: "Track",
-    items: [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/track", label: "Log symptoms", icon: NotebookPen },
-    ],
-  },
-  {
-    label: "Prepare",
-    items: [
-      { href: "/brief", label: "Evidence Brief", icon: FileText, feature: FEATURE_IDS.BRIEF },
-      { href: "/practice", label: "Practice", icon: Sparkle, feature: FEATURE_IDS.PRACTICE },
-    ],
-  },
+// Three destinations, in the order the product is used. Practice is deliberately
+// absent: it is reached from Prepare, where there is a brief to rehearse from,
+// so a separate tab would only invite someone to practise nothing.
+const NAV_ITEMS = [
+  { href: "/", label: "Home", icon: House },
+  { href: "/track", label: "Track", icon: NotebookPen },
+  { href: "/prepare", label: "Prepare", icon: ClipboardList, feature: FEATURE_IDS.BRIEF },
 ];
-
-const ALL_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
 
 export function AppShell({ children }) {
   const pathname = usePathname();
@@ -63,35 +45,33 @@ export function AppShell({ children }) {
         Skip to content
       </a>
 
-      <aside className="hidden w-64 shrink-0 flex-col border-b border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:border-b-0 md:border-r">
+      <aside className="hidden w-60 shrink-0 flex-col border-b border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:border-b-0 md:border-r">
         <div className="border-b border-border px-6 py-5">
           <Logo />
         </div>
 
-        <nav aria-label="Main" className="flex-1 overflow-y-auto px-3 py-5">
-          {NAV_GROUPS.map((group) => (
-            <div key={group.label} className="mb-6 last:mb-0">
-              <p className="eyebrow px-3 pb-2">{group.label}</p>
-              <ul className="space-y-1">
-                {group.items.map((item) => {
-                  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                  const locked = isReady && item.feature && !access.features[item.feature].unlocked;
-                  return (
-                    <li key={item.href}>
-                      <Link href={item.href} aria-current={active ? "page" : undefined} className={navClass(active, locked)}>
-                        <item.icon size={17} aria-hidden="true" />
-                        {item.label}
-                        {locked ? (
-                          <Lock size={13} className="ml-auto text-muted" aria-hidden="true" />
-                        ) : null}
-                        {locked ? <span className="sr-only">(locked)</span> : null}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+        <nav aria-label="Main" className="flex-1 px-3 py-5">
+          <ul className="space-y-1">
+            {NAV_ITEMS.map((item) => {
+              const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+              const locked = isReady && item.feature && !access.features[item.feature].unlocked;
+
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={navClass(active, locked)}
+                  >
+                    <item.icon size={17} aria-hidden="true" />
+                    {item.label}
+                    {locked ? <Lock size={13} className="ml-auto text-muted" aria-hidden="true" /> : null}
+                    {locked ? <span className="sr-only">(locked)</span> : null}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
 
         <div className="border-t border-border p-3">
@@ -136,9 +116,10 @@ export function AppShell({ children }) {
             </Link>
           </div>
           <nav aria-label="Main" className="flex gap-1 overflow-x-auto px-3 pb-3">
-            {ALL_ITEMS.map((item) => {
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            {NAV_ITEMS.map((item) => {
+              const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
               const locked = isReady && item.feature && !access.features[item.feature].unlocked;
+
               return (
                 <Link
                   key={item.href}

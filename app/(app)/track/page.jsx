@@ -10,20 +10,18 @@ import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/Notice";
 import { SymptomForm } from "@/components/track/SymptomForm";
-import { StreakNotice } from "@/components/streak/StreakNotice";
-import { SeverityTrendChart, SymptomCalendar } from "@/components/charts/Charts";
-import { buildStreak } from "@/lib/streak";
-import { formatDate, formatDuration, todayIso } from "@/lib/format";
+import { formatDate, formatDuration } from "@/lib/format";
 
-function TrackSkeleton() {
-  return (
-    <PageContainer className="space-y-6">
-      <div className="skeleton h-8 w-48" />
-      <div className="skeleton h-96 w-full" />
-    </PageContainer>
-  );
-}
-
+/**
+ * Track.
+ *
+ * A log, not a dashboard. The only thing this page asks for is an entry, and
+ * the only thing it shows back is what has been logged — because the value of
+ * the record is that it is complete, and a chart sitting next to the form is
+ * one more reason to stop mid-thought and go look at a graph.
+ *
+ * Every field except the day and the symptom is optional, and the form says so.
+ */
 export default function TrackPage() {
   const {
     isReady,
@@ -38,8 +36,8 @@ export default function TrackPage() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [filter, setFilter] = useState("all");
-  const [savedEntry, setSavedEntry] = useState(null);
-  const dismissSavedEntry = useCallback(() => setSavedEntry(null), []);
+  const [saved, setSaved] = useState(null);
+  const dismissSaved = useCallback(() => setSaved(null), []);
 
   const contextByDate = useMemo(
     () => new Map(contextEntries.map((entry) => [entry.date, entry])),
@@ -47,7 +45,10 @@ export default function TrackPage() {
   );
 
   const sorted = useMemo(
-    () => [...symptomEntries].sort((a, b) => b.date.localeCompare(a.date) || b.severity - a.severity),
+    () =>
+      [...symptomEntries].sort(
+        (a, b) => b.date.localeCompare(a.date) || b.severity - a.severity,
+      ),
     [symptomEntries],
   );
 
@@ -56,29 +57,28 @@ export default function TrackPage() {
     [sorted, filter],
   );
 
-  // Recomputed from the same entries the rest of the page reads, so the streak
-  // can never drift from the log. Saving a new entry updates it immediately.
-  const streak = useMemo(
-    () => buildStreak(symptomEntries, todayIso()),
-    [symptomEntries],
-  );
-
-  if (!isReady) return <TrackSkeleton />;
+  if (!isReady) return null;
 
   function handleSaveSymptom(entry) {
     addSymptomEntry(entry);
     setIsFormOpen(false);
-    setSavedEntry(entry);
+    setSaved(entry);
   }
 
   return (
-    <PageContainer className="space-y-8">
+    <PageContainer className="max-w-3xl space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">Track</p>
-          <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">Log what happened</h1>
+          <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">
+            {report.isEmpty ? "Start your record" : "Your record"}
+          </h1>
           <p className="hint mt-1.5 max-w-prose">
-            Small entries become patterns. Log the day, not just the symptom.
+            {report.isEmpty
+              ? "Log the day, not just the symptom. Sleep, stress and cycle information on the same day is what makes a pattern visible later."
+              : `${report.range.entryCount} ${
+                  report.range.entryCount === 1 ? "entry" : "entries"
+                } · ${report.range.label}`}
           </p>
         </div>
         <Button onClick={() => setIsFormOpen(true)}>
@@ -87,43 +87,17 @@ export default function TrackPage() {
         </Button>
       </header>
 
-      {savedEntry ? (
-        <StreakNotice entry={savedEntry} streak={streak} onDismiss={dismissSavedEntry} />
+      {saved ? (
+        <Card tone="soft" className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <p className="text-sm leading-relaxed text-foreground">
+            <span className="font-semibold">{saved.symptom}</span> logged for{" "}
+            {formatDate(saved.date)}. That is the hard part.
+          </p>
+          <Button size="sm" variant="ghost" onClick={dismissSaved}>
+            Dismiss
+          </Button>
+        </Card>
       ) : null}
-
-      {report.isEmpty ? (
-        <EmptyState
-          icon={NotebookPen}
-          title="Nothing tracked yet"
-          description="Once you log entries, your timeline and charts fill in here."
-          action={<Button onClick={() => setIsFormOpen(true)}>Log your first symptom</Button>}
-        />
-      ) : (
-        <>
-          <Card className="p-5 sm:p-6">
-            <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="font-serif text-xl font-semibold">Symptom calendar</h2>
-                <p className="hint">One cell per day, shaded by the highest severity recorded.</p>
-              </div>
-              <Badge tone="outline">{report.range.label}</Badge>
-            </div>
-            <SymptomCalendar days={report.timeline} />
-          </Card>
-
-          <Card className="p-5 sm:p-6">
-            <h2 className="mb-1 font-serif text-xl font-semibold">Severity over time</h2>
-            <p className="hint mb-4">Days with no entry stay blank rather than being smoothed over.</p>
-            <SeverityTrendChart
-              series={report.symptoms.slice(0, 3).map((symptom) => ({
-                name: symptom.name,
-                points: symptom.dailySeries.map((day) => ({ date: day.date, value: day.severity })),
-              }))}
-              height={250}
-            />
-          </Card>
-        </>
-      )}
 
       <section aria-labelledby="entry-log">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -159,6 +133,7 @@ export default function TrackPage() {
           <ul className="space-y-3">
             {visible.map((entry) => {
               const context = contextByDate.get(entry.date);
+
               return (
                 <li key={entry.id}>
                   <Card className="p-4 sm:p-5">
@@ -170,13 +145,20 @@ export default function TrackPage() {
                         </div>
                         <p className="hint mt-1">
                           {formatDuration(entry.duration_minutes)}
-                          {entry.impact ? ` · ${entry.impact.replace(/^\w/, (c) => c.toUpperCase())} impact` : ""}
+                          {entry.impact
+                            ? ` · ${entry.impact.replace(/^\w/, (c) => c.toUpperCase())} impact`
+                            : null}
                         </p>
                         {entry.notes ? (
                           <p className="mt-2.5 max-w-prose text-sm leading-relaxed text-foreground">
                             {entry.notes}
                           </p>
-                        ) : null}
+                        ) : (
+                          <p className="mt-2.5 text-sm italic text-muted">
+                            No note on this one — what made it better or worse is the detail your
+                            brief is missing.
+                          </p>
+                        )}
                         {context ? (
                           <div className="mt-3 flex flex-wrap gap-1.5">
                             {context.sleep_hours != null ? (
@@ -196,7 +178,10 @@ export default function TrackPage() {
                         <span className="text-right">
                           <span className="block font-serif text-2xl font-semibold tabular-nums text-accent-strong">
                             {entry.severity}
-                            <span className="text-xs font-sans font-normal text-muted"> / 10</span>
+                            <span className="text-xs font-sans font-normal text-muted">
+                              {" "}
+                              / 10
+                            </span>
                           </span>
                           <span className="sr-only">Severity</span>
                         </span>
@@ -220,8 +205,12 @@ export default function TrackPage() {
         ) : (
           <EmptyState
             icon={NotebookPen}
-            title="No entries match"
-            description={filter === "all" ? "Log a symptom to start building your record." : `Nothing logged for ${filter}.`}
+            title={filter === "all" ? "Nothing logged yet" : `Nothing logged for ${filter}`}
+            description={
+              filter === "all"
+                ? "A fortnight of ordinary days is enough to start seeing something. Ninety seconds per entry."
+                : "Try another filter, or log an entry for this symptom."
+            }
             action={<Button onClick={() => setIsFormOpen(true)}>Log a symptom</Button>}
           />
         )}
@@ -237,14 +226,10 @@ export default function TrackPage() {
         <SymptomForm
           onSaveSymptom={handleSaveSymptom}
           onSaveContext={upsertContextEntry}
-          existingContext={contextByDate.get(sortEntriesDescending(symptomEntries)[0]?.date)}
+          existingContext={contextByDate.get(sorted[0]?.date)}
           showCycle={profile.tracksCycle}
         />
       </Modal>
     </PageContainer>
   );
-}
-
-function sortEntriesDescending(entries) {
-  return [...entries].sort((a, b) => b.date.localeCompare(a.date));
 }
