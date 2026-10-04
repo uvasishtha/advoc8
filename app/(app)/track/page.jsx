@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { NotebookPen, Trash2 } from "lucide-react";
+import { History, NotebookPen, Trash2 } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Modal } from "@/components/ui/Modal";
+import { Tabs } from "@/components/ui/Tabs";
 import { EmptyState } from "@/components/ui/Notice";
 import { SymptomForm } from "@/components/track/SymptomForm";
 import { formatDate, formatDuration } from "@/lib/format";
@@ -15,12 +15,16 @@ import { formatDate, formatDuration } from "@/lib/format";
 /**
  * Track.
  *
- * A log, not a dashboard. The only thing this page asks for is an entry, and
- * the only thing it shows back is what has been logged — because the value of
- * the record is that it is complete, and a chart sitting next to the form is
- * one more reason to stop mid-thought and go look at a graph.
+ * Two jobs, so two tabs: write down what happened, and read back what you have
+ * written. They used to share a page behind a modal, which meant the log you
+ * were reading disappeared behind the form you were filling in.
  *
- * Every field except the day and the symptom is optional, and the form says so.
+ * The form is a tab rather than a modal because an entry is ninety seconds of
+ * work done in one sitting. A dialog makes it feel like a detour, and it closes
+ * on save, which loses the thread if you are logging a whole week in one go.
+ *
+ * Nothing here is charted. The value of the record is that it is complete, and a
+ * graph sitting next to the form is one more reason to stop mid-thought.
  */
 export default function TrackPage() {
   const {
@@ -34,7 +38,7 @@ export default function TrackPage() {
     removeSymptomEntry,
   } = useAdvoc8();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [tab, setTab] = useState("log");
   const [filter, setFilter] = useState("all");
   const [saved, setSaved] = useState(null);
   const dismissSaved = useCallback(() => setSaved(null), []);
@@ -61,7 +65,6 @@ export default function TrackPage() {
 
   function handleSaveSymptom(entry) {
     addSymptomEntry(entry);
-    setIsFormOpen(false);
     setSaved(entry);
   }
 
@@ -81,28 +84,70 @@ export default function TrackPage() {
                 } · ${report.range.label}`}
           </p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)}>
+        <Button onClick={() => setTab("log")}>
           <NotebookPen size={16} aria-hidden="true" />
           Log a symptom
         </Button>
       </header>
 
-      {saved ? (
-        <Card tone="soft" className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <p className="text-sm leading-relaxed text-foreground">
-            <span className="font-semibold">{saved.symptom}</span> logged for{" "}
-            {formatDate(saved.date)}. That is the hard part.
-          </p>
-          <Button size="sm" variant="ghost" onClick={dismissSaved}>
-            Dismiss
-          </Button>
-        </Card>
-      ) : null}
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: "log", label: "Log" },
+          { id: "history", label: "History", count: symptomEntries.length },
+        ]}
+      />
 
-      <section aria-labelledby="entry-log">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div
+        role="tabpanel"
+        id="panel-log"
+        aria-labelledby="tab-log"
+        hidden={tab !== "log"}
+        className="space-y-6"
+      >
+        {saved ? (
+          <Card tone="soft" className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+            <p className="text-sm leading-relaxed text-foreground">
+              <span className="font-semibold">{saved.symptom}</span> logged for{" "}
+              {formatDate(saved.date)}. That is the hard part.
+            </p>
+            <Button size="sm" variant="ghost" onClick={dismissSaved}>
+              Dismiss
+            </Button>
+          </Card>
+        ) : null}
+
+        <Card className="p-5 sm:p-6">
+          <h2 className="font-serif text-xl font-semibold">Log an entry</h2>
+          <p className="hint mt-1 max-w-prose">
+            Everything here is optional except the day and the symptom. Notes are the part your
+            brief cannot do without — what made it better or worse is the detail no severity number
+            carries.
+          </p>
+
+          <div className="mt-5">
+            <SymptomForm
+              onSaveSymptom={handleSaveSymptom}
+              onSaveContext={upsertContextEntry}
+              existingContext={contextByDate.get(sorted[0]?.date)}
+              showCycle={profile.tracksCycle}
+            />
+          </div>
+        </Card>
+      </div>
+
+      <div
+        role="tabpanel"
+        id="panel-history"
+        aria-labelledby="tab-history"
+        hidden={tab !== "history"}
+        className="space-y-6"
+      >
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 id="entry-log" className="font-serif text-xl font-semibold">
+            <h2 className="flex items-center gap-2 font-serif text-xl font-semibold">
+              <History size={18} aria-hidden="true" />
               Entry log
             </h2>
             <p className="hint">
@@ -211,25 +256,10 @@ export default function TrackPage() {
                 ? "A fortnight of ordinary days is enough to start seeing something. Ninety seconds per entry."
                 : "Try another filter, or log an entry for this symptom."
             }
-            action={<Button onClick={() => setIsFormOpen(true)}>Log a symptom</Button>}
+            action={<Button onClick={() => setTab("log")}>Log a symptom</Button>}
           />
         )}
-      </section>
-
-      <Modal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        title="Log a symptom"
-        description="Everything here is optional except the day and the symptom."
-        size="lg"
-      >
-        <SymptomForm
-          onSaveSymptom={handleSaveSymptom}
-          onSaveContext={upsertContextEntry}
-          existingContext={contextByDate.get(sorted[0]?.date)}
-          showCycle={profile.tracksCycle}
-        />
-      </Modal>
+      </div>
     </PageContainer>
   );
 }

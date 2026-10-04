@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, House, Lock, NotebookPen, Settings, User } from "lucide-react";
+import { ClipboardList, House, Lock, NotebookPen, Settings, Sparkle, User } from "lucide-react";
 import { Logo } from "./Logo";
 import { cn } from "@/lib/utils";
 import { FEATURE_IDS } from "@/lib/onboarding";
@@ -10,13 +10,14 @@ import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { SetupReminder } from "@/components/onboarding/SetupReminder";
 import { UnlockModal } from "@/components/onboarding/FeatureLock";
 
-// Three destinations, in the order the product is used. Practice is deliberately
-// absent: it is reached from Prepare, where there is a brief to rehearse from,
-// so a separate tab would only invite someone to practise nothing.
+// The four destinations, in the order the product is used. Practice is last
+// because it is the rehearsal, not a step in building the record — it reads the
+// brief, so it only makes sense once Track and Prepare have been done.
 const NAV_ITEMS = [
   { href: "/", label: "Home", icon: House },
   { href: "/track", label: "Track", icon: NotebookPen },
   { href: "/prepare", label: "Prepare", icon: ClipboardList, feature: FEATURE_IDS.BRIEF },
+  { href: "/practice", label: "Practice", icon: Sparkle, feature: FEATURE_IDS.PRACTICE },
 ];
 
 export function AppShell({ children }) {
