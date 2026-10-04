@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, FileText, MessagesSquare } from "lucide-react";
+import { ArrowRight, FileText, MessagesSquare, Target } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { FeatureLock } from "@/components/onboarding/FeatureLock";
@@ -8,7 +8,6 @@ import { FEATURE_IDS } from "@/lib/onboarding";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { EmptyState } from "@/components/ui/Notice";
-import { AppointmentGoal } from "@/components/brief/AppointmentGoal";
 import { PrintDoctorSummaryButton } from "@/components/brief/PrintDoctorSummaryButton";
 import { QuestionsSection, StatementSection } from "@/components/brief/EditableSections";
 import { ExperiencingSection, GapsSection, NoticedSection } from "@/components/brief/ReportSections";
@@ -113,24 +112,17 @@ export default function PreparePage() {
 
         {report.isEmpty ? null : <BriefFacts report={report} />}
 
-        <div className="flex flex-wrap items-center gap-3">
-          {report.isEmpty ? (
+        {report.isEmpty ? (
+          <div className="flex flex-wrap items-center gap-3">
             <Button href="/track">
               Track a symptom
               <ArrowRight size={16} aria-hidden="true" />
             </Button>
-          ) : (
-            <>
-              <Button href={isPracticeLocked ? "/track" : "/practice"}>
-                <MessagesSquare size={16} aria-hidden="true" />
-                Practice your conversation
-              </Button>
-              {isPracticeLocked ? (
-                <span className="hint">Log two entries to unlock practice.</span>
-              ) : null}
-            </>
-          )}
-        </div>
+            <Button href="/setup" variant="outline">
+              Tell Advoc8 what to track
+            </Button>
+          </div>
+        ) : null}
       </header>
 
       <FeatureLock featureId={FEATURE_IDS.BRIEF}>
@@ -145,22 +137,7 @@ export default function PreparePage() {
           <div className="space-y-14">
             <ProvenanceLegend />
 
-            <AppointmentGoal
-              value={draft.appointmentGoal}
-              selected={draft.goalIds}
-              onToggle={toggleGoal}
-              onChange={setAppointmentGoal}
-            />
-
-            <div>
-              <h2 className="font-serif text-2xl font-semibold text-foreground">
-                Review your evidence brief
-              </h2>
-              <p className="hint mt-1.5 max-w-prose">{report.readiness.note}</p>
-
-              <nav aria-label="Brief sections" className="mt-4">
-                <ul className="flex flex-wrap gap-2">
-                  {sections.map((section) => (
+            {sections.map((section) => (
                     <li key={section.number}>
                       <a
                         href={`#section-${section.number}`}
@@ -175,9 +152,8 @@ export default function PreparePage() {
                   ))}
                 </ul>
               </nav>
-            </div>
 
-            {sections.map((section) => (
+              {sections.map((section) => (
               <Section
                 key={section.number}
                 number={section.number}
