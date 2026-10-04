@@ -209,7 +209,7 @@ export default function HomePage() {
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 id="recent-trend" className="font-serif text-2xl font-semibold">
-                Severity across the period
+                Severity graph
               </h2>
               <p className="hint">Highest severity recorded on each day you logged a symptom.</p>
             </div>
