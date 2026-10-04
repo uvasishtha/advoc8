@@ -9,7 +9,7 @@ import { TextArea, TextField } from "@/components/ui/Field";
 import { MOCK_QUESTIONS } from "@/lib/seed/maya";
 import { buildQuestionPrompt } from "@/lib/ai/prompts";
 
-/** 06 — What I Want My Doctor to Know */
+/** 04 — What I want to discuss */
 export function StatementSection({ value, onChange }) {
   const [editing, setEditing] = useState(false);
   const [buffer, setBuffer] = useState(value);
@@ -73,7 +73,7 @@ export function StatementSection({ value, onChange }) {
   );
 }
 
-/** 07 — Questions I Want to Ask */
+/** 05 — Questions for my doctor */
 export function QuestionsSection({ questions, onChange, report }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
@@ -126,9 +126,10 @@ export function QuestionsSection({ questions, onChange, report }) {
       <Card className="p-5 sm:p-6">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="font-serif text-xl font-semibold">Questions I want to ask</h3>
+            <h3 className="font-serif text-xl font-semibold">Questions for my doctor</h3>
             <p className="hint mt-1 max-w-prose">
-              Built from the numbers in this brief. Ask about your records, never about a diagnosis.
+              Built from this brief, including the gaps it flagged. Ask about your records, never
+              about a diagnosis.
             </p>
           </div>
           <Button size="sm" variant="soft" onClick={generate} loading={isGenerating}>
@@ -145,7 +146,8 @@ export function QuestionsSection({ questions, onChange, report }) {
 
         {questions.length === 0 ? (
           <p className="hint mb-4">
-            These starter questions are here until you generate your own. Every one is editable.
+            These starter questions are here until you generate your own from your brief. Every one
+            is editable.
           </p>
         ) : null}
 
@@ -243,6 +245,3 @@ export function QuestionsSection({ questions, onChange, report }) {
     </div>
   );
 }
-
-/** Builds the compact summary handed to the question generator. */
-export { buildQuestionPrompt };
