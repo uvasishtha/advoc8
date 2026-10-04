@@ -7,7 +7,6 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { TextArea, TextField } from "@/components/ui/Field";
 import { MOCK_QUESTIONS } from "@/lib/seed/maya";
-import { buildQuestionPrompt } from "@/lib/ai/prompts";
 
 /** 04 — What I want to discuss */
 export function StatementSection({ value, onChange }) {
