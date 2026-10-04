@@ -26,58 +26,53 @@ export function ExperiencingSection({ report, user }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       setTargetVisible(true);
-      setTimeout(() => setPulse(true), 300);
-    }, 400);
+      setTimeout(() => setPulse(true), 200);
+    }, 300);
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className="space-y-5">
-      {targetVisible && (
-        <div
-          className="flex items-center justify-center mb-4"
-          style={{ animation: pulse ? "pulse-ring 2s ease-out infinite" : "none" }}
-        >
+      <div className="relative">
+        {targetVisible && (
           <div
-            className="relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-accent-strong to-accent-glow/60 shadow-[0_0_30px_rgba(255,100,100,0.4)] transition-all duration-500"
-            style={{ animation: pulse ? "float 3s ease-in-out infinite" : "none" }}
+            className="absolute -left-10 top-1/2 -translate-y-1/2 z-10"
+            style={{ animation: pulse ? "pulse-ring 2s ease-out infinite" : "none" }}
             aria-hidden="true"
           >
-            <Target size={22} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" />
-            <span
-              className="absolute inset-0 rounded-full border-2 border-accent-strong/30 animate-ping"
-              aria-hidden="true"
-            />
-            <span
-              className="absolute inset-0 rounded-full border-2 border-accent-strong/20 animate-ping"
-              style={{ animationDelay: "1s" }}
-              aria-hidden="true"
-            />
+            <div
+              className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-accent-strong to-accent-glow/60 shadow-[0_0_20px_rgba(255,100,100,0.35)] transition-all duration-500"
+              style={{ animation: pulse ? "float 3s ease-in-out infinite" : "none" }}
+            >
+              <Target size={14} className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
+              <span className="absolute inset-0 rounded-full border border-accent-strong/30 animate-ping" />
+              <span className="absolute inset-0 rounded-full border border-accent-strong/20 animate-ping" style={{ animationDelay: "1s" }} />
+            </div>
+            <style jsx>{`
+              @keyframes pulse-ring {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.08); opacity: 0.7; }
+                100% { transform: scale(1); opacity: 1; }
+              }
+              @keyframes float {
+                0% { transform: translateY(0); }
+                50% { transform: translateY(-4px); }
+                100% { transform: translateY(0); }
+              }
+            `}</style>
           </div>
-          <style jsx>{`
-            @keyframes pulse-ring {
-              0% { transform: scale(1); opacity: 1; }
-              50% { transform: scale(1.05); opacity: 0.8; }
-              100% { transform: scale(1); opacity: 1; }
-            }
-            @keyframes float {
-              0% { transform: translateY(0); }
-              50% { transform: translateY(-6px); }
-              100% { transform: translateY(0); }
-            }
-          `}</style>
-        </div>
-      )}
+        )}
 
-      {user.concern ? (
-        <Card tone="soft" className="p-5 sm:p-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="eyebrow">In your own words</p>
-            <ProvenanceTag source="yours" />
-          </div>
-          <p className="mt-1.5 font-serif text-xl leading-relaxed text-foreground">{user.concern}</p>
-        </Card>
-      ) : null}
+        {user.concern ? (
+          <Card tone="soft" className="p-5 sm:p-6 pl-10 sm:pl-12">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="eyebrow">In your own words</p>
+              <ProvenanceTag source="yours" />
+            </div>
+            <p className="mt-1.5 font-serif text-xl leading-relaxed text-foreground">{user.concern}</p>
+          </Card>
+        ) : null}
+      </div>
 
       <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
         <p className="text-sm text-muted">

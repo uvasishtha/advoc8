@@ -88,15 +88,15 @@ export default function PreparePage() {
   ];
 
   return (
-    <PageContainer className="max-w-4xl space-y-14">
-      <header className="space-y-6">
+    <PageContainer className="max-w-4xl space-y-10">
+      <header className="space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="min-w-0">
             <p className="eyebrow">Your appointment</p>
-            <h1 className="mt-2 font-serif text-4xl font-semibold leading-tight sm:text-5xl">
+            <h1 className="mt-1.5 font-serif text-4xl font-semibold leading-tight sm:text-5xl">
               Prepare for Your Appointment
             </h1>
-            <p className="mt-3 max-w-prose text-lg leading-relaxed text-muted">
+            <p className="mt-2.5 max-w-prose text-lg leading-relaxed text-muted">
               {isLocked
                 ? briefAccess.message
                 : "Your record and your own words, in the order you will want them. Read it, edit anything that is not quite right, and take it in."}
@@ -108,10 +108,10 @@ export default function PreparePage() {
           )}
         </div>
 
-        {report.isEmpty ? null : <BriefFacts report={report} />}
+        {report.isEmpty ? null : <BriefFacts report={report} className="mt-2" />}
 
         {report.isEmpty ? (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 mt-2">
             <Button href="/track">
               Track a symptom
               <ArrowRight size={16} aria-hidden="true" />
@@ -123,7 +123,7 @@ export default function PreparePage() {
         ) : null}
       </header>
 
-      <FeatureLock featureId={FEATURE_IDS.BRIEF}>
+<FeatureLock featureId={FEATURE_IDS.BRIEF}>
         {report.isEmpty ? (
           <EmptyState
             icon={FileText}
@@ -132,38 +132,40 @@ export default function PreparePage() {
             action={<Button href="/track">Track a symptom</Button>}
           />
         ) : (
-          <div className="space-y-14">
-            <ProvenanceLegend />
+          <div className="space-y-10">
+            <ProvenanceLegend className="mb-2" />
 
-            <nav aria-label="Brief sections" className="mt-4">
+            <nav aria-label="Brief sections" className="mb-6">
               <ul className="flex flex-wrap gap-2">
                 {sections.map((section) => (
-                    <li key={section.number}>
-                      <a
-                        href={`#section-${section.number}`}
-                        className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent-muted hover:bg-accent-soft hover:text-accent-strong"
-                      >
-                        <span aria-hidden="true" className="font-serif text-xs font-semibold">
-                          {section.number}
-                        </span>
-                        {section.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
+                  <li key={section.number}>
+                    <a
+                      href={`#section-${section.number}`}
+                      className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent-muted hover:bg-accent-soft hover:text-accent-strong"
+                    >
+                      <span aria-hidden="true" className="font-serif text-xs font-semibold">
+                        {section.number}
+                      </span>
+                      {section.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
+            <div className="space-y-10">
               {sections.map((section) => (
-              <Section
-                key={section.number}
-                number={section.number}
-                title={section.title}
-                description={section.description}
-                source={section.source}
-              >
-                {section.body}
-              </Section>
-            ))}
+                <Section
+                  key={section.number}
+                  number={section.number}
+                  title={section.title}
+                  description={section.description}
+                  source={section.source}
+                >
+                  {section.body}
+                </Section>
+              ))}
+            </div>
 
             <PracticeCallout locked={isPracticeLocked} />
           </div>
@@ -179,7 +181,7 @@ export default function PreparePage() {
  * grid on the front page of the product turns the brief into a report about the
  * report.
  */
-function BriefFacts({ report }) {
+function BriefFacts({ report, className }) {
   const facts = [
     ["Tracking", report.range.label],
     ["Entries", String(report.range.entryCount)],
@@ -190,7 +192,7 @@ function BriefFacts({ report }) {
   ];
 
   return (
-    <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <dl className={cn("grid grid-cols-1 gap-3 sm:grid-cols-3", className)}>
       {facts.map(([term, value]) => (
         <div key={term} className="rounded-xl border border-border bg-surface px-4 py-3">
           <dt className="hint">{term}</dt>
@@ -210,29 +212,33 @@ function PracticeCallout({ locked }) {
     <section
       aria-labelledby="practice-heading"
       className={cn(
-        "rounded-2xl border border-accent-muted bg-accent-soft/50 px-5 py-7 sm:px-7 sm:py-8",
+        "rounded-2xl border border-accent-muted bg-accent-soft/50 px-5 py-6 sm:px-7 sm:py-7",
       )}
     >
-      <MessagesSquare size={20} className="text-accent-strong" aria-hidden="true" />
-      <h2 id="practice-heading" className="mt-3 font-serif text-2xl font-semibold text-foreground">
-        Practice your conversation
-      </h2>
-      <p className="mt-2 max-w-prose leading-relaxed text-foreground">
-        Say it out loud once before you have to. Advoc8 plays the clinician, works only from the
-        brief above, and asks you to put your experience into sentences. It will ask about the
-        details you have not written down yet.
-      </p>
-      <div className="mt-5">
-        {locked ? (
-          <Button variant="outline" disabled>
-            Log two entries to unlock practice
-          </Button>
-        ) : (
-          <Button href="/practice">
+      <div className="flex items-start gap-3">
+        <MessagesSquare size={20} className="mt-0.5 shrink-0 text-accent-strong" aria-hidden="true" />
+        <div className="flex-1 min-w-0">
+          <h2 id="practice-heading" className="font-serif text-xl font-semibold text-foreground">
             Practice your conversation
-            <ArrowRight size={16} aria-hidden="true" />
-          </Button>
-        )}
+          </h2>
+          <p className="mt-1.5 max-w-prose leading-relaxed text-foreground text-sm">
+            Say it out loud once before you have to. Advoc8 plays the clinician, works only from the
+            brief above, and asks you to put your experience into sentences. It will ask about the
+            details you have not written down yet.
+          </p>
+          <div className="mt-4">
+            {locked ? (
+              <Button variant="outline" disabled className="w-full sm:w-auto">
+                Log two entries to unlock practice
+              </Button>
+            ) : (
+              <Button href="/practice" className="w-full sm:w-auto">
+                Practice your conversation
+                <ArrowRight size={16} aria-hidden="true" />
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );
