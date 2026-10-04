@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { EmptyState } from "@/components/ui/Notice";
 import { AppointmentGoal } from "@/components/brief/AppointmentGoal";
+import { PrintDoctorSummaryButton } from "@/components/brief/PrintDoctorSummaryButton";
 import { QuestionsSection, StatementSection } from "@/components/brief/EditableSections";
 import { ExperiencingSection, GapsSection, NoticedSection } from "@/components/brief/ReportSections";
 import { ProvenanceLegend } from "@/components/brief/Provenance";
@@ -92,16 +93,22 @@ export default function PreparePage() {
   return (
     <PageContainer className="max-w-4xl space-y-14">
       <header className="space-y-6">
-        <div>
-          <p className="eyebrow">Your appointment</p>
-          <h1 className="mt-2 font-serif text-4xl font-semibold leading-tight sm:text-5xl">
-            Prepare for Your Appointment
-          </h1>
-          <p className="mt-3 max-w-prose text-lg leading-relaxed text-muted">
-            {isLocked
-              ? briefAccess.message
-              : "Your record and your own words, in the order you will want them. Read it, edit anything that is not quite right, and take it in."}
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div className="min-w-0">
+            <p className="eyebrow">Your appointment</p>
+            <h1 className="mt-2 font-serif text-4xl font-semibold leading-tight sm:text-5xl">
+              Prepare for Your Appointment
+            </h1>
+            <p className="mt-3 max-w-prose text-lg leading-relaxed text-muted">
+              {isLocked
+                ? briefAccess.message
+                : "Your record and your own words, in the order you will want them. Read it, edit anything that is not quite right, and take it in."}
+            </p>
+          </div>
+
+          {report.isEmpty ? null : (
+            <PrintDoctorSummaryButton report={report} user={user} draft={draft} />
+          )}
         </div>
 
         {report.isEmpty ? null : <BriefFacts report={report} />}

@@ -229,7 +229,67 @@ body {
     animation: streak-sparkle-twinkle 3.4s ease-in-out infinite;
   }
 
-  @media (prefers-reduced-motion: reduce) {
+/* ---------------------------------------------------------------------------
+   Doctor Summary print sheet
+   ---------------------------------------------------------------------------
+   The printable summary is mounted into <body> by PrintDoctorSummaryButton as
+   the only child carrying [data-print-root]. It is hidden on screen, and on
+   paper it is the only thing that survives — so the browser prints the summary
+   and never the app behind it.
+*/
+
+[data-print-root] {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 0.5in;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Everything that is not the summary: the shell, the nav, the brief itself,
+     and any portalled overlays the app has added to <body>. */
+  body > *:not([data-print-root]) {
+    display: none !important;
+  }
+
+  [data-print-root] {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Keep the brand accent legible on paper rather than letting the browser
+     drop backgrounds and colours. */
+  [data-print-root],
+  [data-print-root] * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  [data-print-root] section,
+  [data-print-root] table,
+  [data-print-root] tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  [data-print-root] thead {
+    display: table-header-group;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
     .streak-eight,
     .streak-eight-glow,
     .streak-sparkle {
