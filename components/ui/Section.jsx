@@ -32,3 +32,41 @@ export function Section({ number, title, description, source, children, classNam
     </section>
   );
 }
+
+/**
+ * The at-a-glance number row.
+ *
+ * Restored from the old dashboard because it was doing a job nothing else on the
+ * page does: it lets someone decide whether a screen is worth reading in one
+ * glance. Restored with the caveat that it stays a summary — a stat grid that
+ * grows a seventh tile stops being a summary and becomes the thing the brief was
+ * supposed to replace.
+ */
+export function StatGrid({ children, className, columns = 4 }) {
+  const map = {
+    2: "sm:grid-cols-2",
+    3: "sm:grid-cols-2 lg:grid-cols-3",
+    4: "sm:grid-cols-2 lg:grid-cols-4",
+  };
+
+  return <div className={cn("grid grid-cols-1 gap-3", map[columns], className)}>{children}</div>;
+}
+
+export function Stat({ value, label, hint, unit, tone = "default", className }) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border p-4",
+        tone === "accent" ? "border-accent-muted bg-accent-soft" : "border-border bg-surface",
+        className,
+      )}
+    >
+      <p className="font-serif text-3xl font-semibold leading-none text-foreground">
+        {value}
+        {unit ? <span className="ml-1 font-sans text-sm font-medium text-muted">{unit}</span> : null}
+      </p>
+      <p className="mt-2 text-sm font-medium text-foreground">{label}</p>
+      {hint ? <p className="hint mt-0.5">{hint}</p> : null}
+    </div>
+  );
+}
