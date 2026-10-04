@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, FileText, MessagesSquare } from "lucide-react";
+import { ArrowRight, FileText, MessagesSquare, BarChart2 } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { FeatureLock } from "@/components/onboarding/FeatureLock";
@@ -12,6 +12,7 @@ import { PrintDoctorSummaryButton } from "@/components/brief/PrintDoctorSummaryB
 import { QuestionsSection, StatementSection } from "@/components/brief/EditableSections";
 import { ExperiencingSection, GapsSection, NoticedSection } from "@/components/brief/ReportSections";
 import { ProvenanceLegend } from "@/components/brief/Provenance";
+import { SeverityTrendChart } from "@/components/charts/Charts";
 import { cn } from "@/lib/utils";
 
 /**
@@ -109,6 +110,8 @@ export default function PreparePage() {
         </div>
 
         {report.isEmpty ? null : <BriefFacts report={report} className="mt-2" />}
+
+        {report.isEmpty ? null : <SeverityTrendChartWrapper report={report} />}
 
         {report.isEmpty ? (
           <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -240,6 +243,42 @@ function PracticeCallout({ locked }) {
           </div>
         </div>
       </div>
+    </section>
+  );
+}
+
+/**
+ * Wrapper that transforms the report's symptom data into the format
+ * expected by SeverityTrendChart. Only renders when there's symptom data.
+ */
+function SeverityTrendChartWrapper({ report }) {
+  if (!report.symptoms || report.symptoms.length === 0) return null;
+
+  const series = report.symptoms.map((symptom) => ({
+    name: symptom.name,
+    points: symptom.dailySeries?.map((point) => ({
+      date: point.date,
+      value: point.value,
+    })) ?? [],
+  }));
+
+  return (
+    <section
+      aria-labelledby="severity-chart-heading"
+      className="rounded-2xl border border-border bg-surface px-5 py-5 sm:px-6 sm:py-6"
+    >
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <BarChart2 size={18} className="text-muted" aria-hidden="true" />
+          <h2 id="severity-chart-heading" className="font-serif text-lg font-semibold text-foreground">
+            Severity over time
+          </h2>
+        </div>
+        <p className="hint text-sm">
+          One point per day. Gaps are days nothing was logged.
+        </p>
+      </div>
+      <SeverityTrendChart series={series} height={240} showLegend={true} />
     </section>
   );
 }
