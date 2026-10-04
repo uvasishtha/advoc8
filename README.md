@@ -63,8 +63,9 @@ The brief includes:
 4. **What I Want Them to Understand** — your own statement, editable in place
 5. **Questions I Want to Ask** — generated from the brief, with a deterministic fallback
 
-Nothing in the brief is charted, and there is no PDF or print export. The brief is a page you read
-and edit before the appointment.
+The brief is a page you read and edit before the appointment. It carries one chart — severity
+over time, one point per logged day — and a **Print** button that builds a one-page Doctor Summary
+from the same report and hands it to the browser's print dialog, rather than printing the app.
 
 ---
 
@@ -121,9 +122,10 @@ cp .env.example .env.local   # optional: only needed for the AI features
 npm run dev
 ```
 
-The app opens on **Home**. Use **Settings → Open the sample brief** to load Maya R's sample month of
-September 2026 tracking, which fills every section of the brief, and **Start a new profile** to
-wipe this browser back to empty at any time.
+A first visit opens on the setup survey. **Skip for Now** loads Maya R's sample month of September
+2026 tracking — which fills every section of the brief — and returns to the dashboard. From there,
+**Settings → Open the sample brief** reloads the same sample at any time, and **Start a new profile**
+wipes this browser back to the survey.
 
 ### Environment
 
@@ -145,12 +147,51 @@ no Supabase client or other server dependency.
 ### Tests
 
 ```bash
-npm test        # analytics and safe language, onboarding gates, the AI prompt
+npm test        # analytics and safe language, onboarding rules, the AI prompt
                 # and fallback layer, and the full survey -> log -> brief ->
                 # questions -> practice journey
 npm run lint
 npm run build
 ```
+
+---
+
+## Stack
+
+### What it runs on today
+
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Turbopack), React 19, plain JSX — no TypeScript in the source |
+| Styling | Tailwind CSS v4 with a CSS-first `@theme` in `app/globals.css`, `clsx` + `tailwind-merge`, lucide-react icons |
+| Fonts | DM Sans and Newsreader, self-hosted at build time through `next/font/google` |
+| State | One React context over three custom `localStorage` stores. No state library |
+| Storage | Browser `localStorage` only. No database, no auth, no cookies |
+| Analytics | Hand-written deterministic code in `lib/analytics/` — counts, means, medians, longest runs, rate comparisons. No ML, no statistics package |
+| AI (optional) | Plain `fetch` to the Gemini `generateContent` API from two route handlers, `gemini-2.5-flash` by default |
+| Charts | Recharts, for the severity-over-time line only |
+| Tests | Vitest in a node environment: pure logic plus `renderToStaticMarkup`, no browser environment |
+| Lint | ESLint 9 flat config with `eslint-config-next` |
+
+`vite.config.mjs` exists only because `vitest.config.mjs` spreads it. It is not a second bundler.
+
+### What we expect to move to
+
+| Layer | Expected | Why |
+| --- | --- | --- |
+| Database | Supabase Postgres | `supabase/schema.sql` already defines the tables, with row level security and an own-row policy on each |
+| Auth | Supabase Auth (magic link or OAuth) | Replaces the no-account model, and RLS means a person only ever reads their own rows |
+| App | The same Next.js app | Server Components for reads, Server Actions for writes, `@supabase/ssr` for cookies |
+| Migration seam | `lib/local-store.js` | Swapping `createLocalStore` for route handlers is the whole migration; nothing downstream of `DataProvider` changes |
+| AI providers | One interface, swappable | `callGemini` is plain `fetch` behind a single signature, so the provider changes by swapping the endpoint and headers |
+| Cohort analytics | A separate Python service (FastAPI) over a de-identified view | Likelihood estimates never sit in the app's own request path |
+| Consent | A `consents` table recording what, when, and against which version | "May we use this for research" has to be revocable and auditable, not a line in a privacy policy |
+| Hosting | Vercel plus Supabase, both under a BAA | Decides whether HIPAA is real or decorative, and has to be settled before a pilot rather than after |
+| Tests | Vitest with Testing Library (jsdom), plus Playwright | Nothing in the current suite exercises a click |
+| Language | TypeScript in strict mode, analytics layer first | A silently wrong number is the expensive failure here |
+
+The model work is not the risky part of that list. Moving storage off the device is, and it is a
+consent and contracts problem before it is an engineering one.
 
 ---
 
