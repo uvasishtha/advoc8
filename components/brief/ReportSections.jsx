@@ -3,6 +3,7 @@
 import { Eye, ListChecks } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/Notice";
+import { ProvenanceTag } from "@/components/brief/Provenance";
 import { formatDate } from "@/lib/format";
 
 /**
@@ -22,7 +23,10 @@ export function ExperiencingSection({ report, user }) {
     <div className="space-y-5">
       {user.concern ? (
         <Card tone="soft" className="p-5 sm:p-6">
-          <p className="eyebrow">In your own words</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="eyebrow">In your own words</p>
+            <ProvenanceTag source="yours" />
+          </div>
           <p className="mt-1.5 font-serif text-xl leading-relaxed text-foreground">{user.concern}</p>
         </Card>
       ) : null}
@@ -36,6 +40,8 @@ export function ExperiencingSection({ report, user }) {
           <p className="text-sm text-muted">First entry {formatDate(firstLogged)}</p>
         ) : null}
       </div>
+
+      <ProvenanceTag source="record" className="mb-1" />
 
       <ul className="space-y-2.5">
         {report.experience.map((line) => (

@@ -42,30 +42,18 @@ Users log symptoms over time, including:
 
 ---
 
-### 02 — Analyze
+### 02 — Prepare
 
-Advoc8 analyzes the user's longitudinal tracking data to identify measurable changes and recurring patterns.
-
-Examples include:
-
-- Symptom frequency
-- Average severity
-- Highest severity
-- Changes over time
-- Symptom co-occurrence
-- Contextual co-occurrence
+Tracking turns into a structured **Advoc8 Evidence Brief** at `/prepare`. The analysis is
+deterministic and runs entirely on the user's own entries: frequency, average and highest severity,
+episode duration, change across the period, which symptoms arrive together, and how symptoms line up
+with logged sleep and stress.
 
 For example:
 
 > Headaches appeared on 8 of the 10 days you logged fewer than 6 hours of sleep.
 
 Advoc8 describes this as an **observed pattern**, not a medical cause.
-
----
-
-### 03 — Build an Evidence Brief
-
-Users can turn their tracking history into a structured **Advoc8 Evidence Brief**.
 
 The brief includes:
 
@@ -80,7 +68,7 @@ and edit before the appointment.
 
 ---
 
-### 04 — Practice
+### 03 — Practice
 
 After creating the Evidence Brief, users can practice communicating their experience with Advoc8's AI.
 
@@ -115,10 +103,10 @@ First half: 4.1 / 10
 Second half: 7.0 / 10
 ```
 
-It could then surface:
+It could then surface, under **What I've Noticed**:
 
-> **Measured difference:** Headache was logged on 73% of the 11 days you recorded fewer than
-> 6 hours of sleep, compared with 37% of the 19 other days you recorded sleep for.
+> Headaches showed up on 8 of the 10 days you logged fewer than 6 hours of sleep, compared with
+> 4 of the 20 other days you recorded sleep for.
 
 Both figures come from the user's own entries. Advoc8 reports the size of the gap and stops
 there — it does not claim that one produced the other.
@@ -133,9 +121,9 @@ cp .env.example .env.local   # optional: only needed for the AI features
 npm run dev
 ```
 
-The app opens on **Home**. Use **Settings → Your data** to load Maya R's sample month of September
-2026 tracking, which fills every section of the brief, and to reset back to your own entries at
-any time.
+The app opens on **Home**. Use **Settings → Open the sample brief** to load Maya R's sample month of
+September 2026 tracking, which fills every section of the brief, and **Start a new profile** to
+wipe this browser back to empty at any time.
 
 ### Environment
 
@@ -150,14 +138,16 @@ are templated rather than written by a model.
 
 ### Data
 
-Entries are stored in `localStorage` in the browser. There is no account and no server. A schema
-for a Postgres/Supabase backend is in `supabase/schema.sql`; it is not wired into the running app.
+Entries are stored in `localStorage` in the browser. There is no account and no server. An unused
+Postgres schema is kept in `supabase/schema.sql` as a reference for a future backend; the app has
+no Supabase client or other server dependency.
 
 ### Tests
 
 ```bash
-npm test        # analytics, onboarding, doctor summary, and the full
-                # survey -> log -> analysis -> report journey
+npm test        # analytics and safe language, onboarding gates, the AI prompt
+                # and fallback layer, and the full survey -> log -> brief ->
+                # questions -> practice journey
 npm run lint
 npm run build
 ```
@@ -167,5 +157,5 @@ npm run build
 ## A Note on Language
 
 The analytics layer describes co-occurrence and never cause. Banned causal and diagnostic
-phrasings are listed in `lib/analytics/language.js` and asserted against the deterministic
-doctor summary in `lib/doctor-summary.test.js`.
+phrasings are listed in `lib/analytics/language.js` and asserted against the brief in
+`lib/analytics/analytics.test.js`.
