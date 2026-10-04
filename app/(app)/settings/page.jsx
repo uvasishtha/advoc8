@@ -9,7 +9,7 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { Disclaimer } from "@/components/ui/Notice";
-import { DAY_TO_DAY_OPTIONS, FIRST_NOTICED_OPTIONS, SETUP_STATUS } from "@/lib/onboarding";
+import { DAY_TO_DAY_OPTIONS, FIRST_NOTICED_OPTIONS } from "@/lib/onboarding";
 import { formatDate } from "@/lib/format";
 
 function ConfirmDialog({ isOpen, onClose, onConfirm, title, description, confirmLabel }) {
@@ -41,6 +41,7 @@ function optionLabel(options, value) {
 export default function SettingsPage() {
   const {
     user,
+    access,
     report,
     symptomEntries,
     contextEntries,
@@ -50,8 +51,6 @@ export default function SettingsPage() {
   } = useAdvoc8();
 
   const [pendingAction, setPendingAction] = useState(null);
-
-  const setupComplete = user.status === SETUP_STATUS.COMPLETED;
 
   function runAction() {
     pendingAction?.run();
@@ -70,8 +69,8 @@ export default function SettingsPage() {
           title="Your profile"
           description="What Advoc8 knows about you. It comes from your setup survey, nothing else."
           action={
-            <Badge tone={setupComplete ? "success" : "warning"}>
-              {setupComplete ? "Setup complete" : "Setup not finished"}
+            <Badge tone={access.setupComplete ? "success" : "warning"}>
+              {access.setupComplete ? "Setup complete" : "Setup not finished"}
             </Badge>
           }
         />
@@ -102,7 +101,7 @@ export default function SettingsPage() {
         <div className="mt-5">
           <Button href="/setup" variant="outline">
             <UserRound size={16} aria-hidden="true" />
-            {setupComplete ? "Redo setup" : "Complete Setup"}
+            {access.setupComplete ? "Redo setup" : "Complete Setup"}
           </Button>
         </div>
       </Card>
