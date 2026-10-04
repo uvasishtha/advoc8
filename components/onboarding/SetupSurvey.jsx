@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { CalendarHeart, Check, ClipboardList, NotebookPen, Sparkle, UserRound } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
@@ -36,6 +36,116 @@ const EMPTY_ANSWERS = {
   cycleLength: "",
   lastPeriodStart: "",
 };
+
+const NOTHING_YET = "nothing-yet";
+
+/** The three things this profile is for, shown before any question is asked. */
+const HOW_IT_WORKS = [
+  { icon: NotebookPen, title: "Track", text: "Log a symptom in a few seconds a day." },
+  { icon: ClipboardList, title: "Prepare", text: "Get a brief written from your own entries." },
+  { icon: Sparkle, title: "Practice", text: "Rehearse explaining it before you go in." },
+];
+
+/** Multi-select pill. `aria-pressed` carries the state, not just the colour. */
+function Chip({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition-colors",
+        active
+          ? "border-accent-muted bg-accent-soft text-accent-strong"
+          : "border-border-strong bg-surface text-muted hover:border-accent-muted hover:bg-secondary-bg hover:text-foreground",
+      )}
+    >
+      {active ? <Check size={14} aria-hidden="true" /> : null}
+      {children}
+    </button>
+  );
+}
+
+/**
+ * Single-choice group, drawn as cards instead of a dropdown.
+ *
+ * The options are short and there are only a handful, so showing all of them at
+ * once beats a menu: the answer is visible instead of remembered, and there is
+ * one click instead of two. Real radio inputs underneath, so the arrow keys and
+ * the announced group name still work.
+ */
+function OptionCards({ name, legend, options, value, onChange, columns, error }) {
+  return (
+    <fieldset>
+      <legend className="label">{legend}</legend>
+
+      <div className={cn("grid gap-2", columns ?? "sm:grid-cols-2")}>
+        {options.map((option) => {
+          const active = value === option.value;
+
+          return (
+            <label key={option.value} className="relative block cursor-pointer">
+              <input
+                type="radio"
+                name={name}
+                value={option.value}
+                checked={active}
+                onChange={() => onChange(option.value)}
+                className="peer absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-xl opacity-0"
+              />
+              <span
+                className={cn(
+                  "flex min-h-11 items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-medium leading-snug transition-colors",
+                  "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-strong",
+                  active
+                    ? "border-accent-muted bg-accent-soft text-accent-strong"
+                    : "border-border-strong bg-surface text-foreground hover:border-accent-muted hover:bg-secondary-bg",
+                )}
+              >
+                {option.label}
+                <Check
+                  size={15}
+                  aria-hidden="true"
+                  className={cn("shrink-0 text-accent-strong", active ? "opacity-100" : "opacity-0")}
+                />
+              </span>
+            </label>
+          );
+        })}
+      </div>
+
+      {error ? (
+        <p role="alert" className="mt-1.5 text-xs font-medium text-warning">
+          {error}
+        </p>
+      ) : null}
+    </fieldset>
+  );
+}
+
+/**
+ * Card heading: an icon badge plus the question the card is asking.
+ *
+ * `as="legend"` turns the whole thing into the heading of a fieldset, so the two
+ * question cards stay one semantic group. Everything inside is phrasing content
+ * plus the heading itself, which is all a legend is allowed to hold.
+ */
+function CardHeading({ icon: Icon, title, description, as: Wrapper = "div" }) {
+  return (
+    <Wrapper className="flex items-start gap-3.5">
+      <span
+        aria-hidden="true"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-strong"
+      >
+        <Icon size={17} />
+      </span>
+      <span className="min-w-0">
+        <h2 className="font-serif text-lg font-semibold">{title}</h2>
+        {description ? <span className="hint mt-0.5 block max-w-prose">{description}</span> : null}
+      </span>
+    </Wrapper>
+  );
+}
 
 /**
  * The initial setup survey: five questions, an optional cycle block, and two
@@ -78,8 +188,6 @@ export function SetupSurvey() {
     setErrors((previous) => ({ ...previous, cycleLength: undefined, lastPeriodStart: undefined }));
   }
 
-  const NOTHING_YET = "nothing-yet";
-
   function toggleFactor(value) {
     setAnswers((previous) => {
       const isOn = previous.possibleFactors.includes(value);
@@ -114,37 +222,81 @@ export function SetupSurvey() {
   }
 
   return (
-    <PageContainer className="max-w-3xl space-y-6">
-      <header>
-        <p className="eyebrow">First-time setup</p>
-        <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">
-          Let&rsquo;s set up your profile
-        </h1>
-        <p className="hint mt-1.5 max-w-prose">
-          Answer a few questions to give Advoc8 some context. You can update anything later or skip
-          setup for now.
-        </p>
+    <PageContainer className="max-w-3xl space-y-5">
+      <header className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-8">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-accent-soft blur-3xl"
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 -left-14 h-44 w-44 rounded-full bg-secondary-bg blur-3xl"
+        />
+
+        <div className="relative">
+          <p className="eyebrow">First-time setup</p>
+          <h1 className="mt-1.5 font-serif text-3xl font-semibold sm:text-4xl">
+            Let&rsquo;s set up your profile
+          </h1>
+          <p className="hint mt-2 max-w-prose">
+            Answer a few questions to give Advoc8 some context. You can update anything later or
+            skip setup for now.
+          </p>
+
+          <ul className="mt-6 grid gap-2.5 sm:grid-cols-3">
+            {HOW_IT_WORKS.map((item) => (
+              <li
+                key={item.title}
+                className="flex items-start gap-2.5 rounded-xl border border-border bg-secondary-bg/70 p-3"
+              >
+                <span
+                  aria-hidden="true"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface text-accent-strong"
+                >
+                  <item.icon size={14} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium text-foreground">{item.title}</span>
+                  <span className="hint block leading-snug">{item.text}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </header>
 
-      <form onSubmit={handleSubmit} noValidate className="space-y-6">
-        <Card className="p-5 sm:p-6">
-          <TextField
-            label="What should Advoc8 call you?"
-            required
-            value={answers.firstName}
-            onChange={update("firstName")}
-            error={errors.firstName}
-            placeholder="Maya"
-            autoComplete="given-name"
-            maxLength={60}
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        <Card className="p-5 shadow-[0_12px_32px_-24px_rgba(36,28,34,0.45)] sm:p-6">
+          <CardHeading
+            icon={UserRound}
+            title="First, who are we talking to?"
+            description="Advoc8 greets you by name and puts it at the top of your Evidence Brief."
           />
+
+          <div className="mt-5">
+            <TextField
+              label="What should Advoc8 call you?"
+              required
+              value={answers.firstName}
+              onChange={update("firstName")}
+              error={errors.firstName}
+              placeholder="Maya"
+              autoComplete="given-name"
+              maxLength={60}
+            />
+          </div>
         </Card>
 
-        <Card className="p-5 sm:p-6">
+        <Card className="p-5 shadow-[0_12px_32px_-24px_rgba(36,28,34,0.45)] sm:p-6">
           <fieldset>
-            <legend className="font-serif text-lg font-semibold">What&rsquo;s been going on?</legend>
+            <CardHeading
+              as="legend"
+              icon={ClipboardList}
+              title="What’s been going on?"
+              description="This is the part that decides what gets tracked and what the brief looks like."
+            />
 
-            <div className="mt-4 space-y-5">
+            <div className="mt-5 space-y-6">
               <TextArea
                 label="What has been going on?"
                 required
@@ -156,37 +308,27 @@ export function SetupSurvey() {
                 hint="In your own words. This becomes the opening of your Evidence Brief."
               />
 
-              <SelectField
-                label="When did you first notice it?"
+              <OptionCards
+                name="firstNoticed"
+                legend="When did you first notice it?"
+                options={FIRST_NOTICED_OPTIONS}
                 value={answers.firstNoticed}
                 onChange={update("firstNoticed")}
                 error={errors.firstNoticed}
-                options={[{ value: "", label: "Choose one" }, ...FIRST_NOTICED_OPTIONS]}
               />
 
               <div>
                 <span className="label">What symptoms are you experiencing?</span>
                 <div className="flex flex-wrap gap-2">
-                  {SURVEY_SYMPTOM_OPTIONS.map((name) => {
-                    const active = answers.symptoms.includes(name);
-                    return (
-                      <button
-                        key={name}
-                        type="button"
-                        onClick={() => toggleSymptom(name)}
-                        aria-pressed={active}
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
-                          active
-                            ? "border-accent-muted bg-accent-soft text-accent-strong"
-                            : "border-border-strong text-muted hover:bg-secondary-bg hover:text-foreground",
-                        )}
-                      >
-                        {active ? <Check size={14} aria-hidden="true" /> : null}
-                        {name}
-                      </button>
-                    );
-                  })}
+                  {SURVEY_SYMPTOM_OPTIONS.map((name) => (
+                    <Chip
+                      key={name}
+                      active={answers.symptoms.includes(name)}
+                      onClick={() => toggleSymptom(name)}
+                    >
+                      {name}
+                    </Chip>
+                  ))}
                 </div>
                 {answers.symptoms.includes("Other") ? (
                   <div className="mt-3">
@@ -208,26 +350,15 @@ export function SetupSurvey() {
                   Advoc8 does not assume they are causes.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {POSSIBLE_FACTOR_OPTIONS.map((option) => {
-                    const active = answers.possibleFactors.includes(option.value);
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => toggleFactor(option.value)}
-                        aria-pressed={active}
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
-                          active
-                            ? "border-accent-muted bg-accent-soft text-accent-strong"
-                            : "border-border-strong text-muted hover:bg-secondary-bg hover:text-foreground",
-                        )}
-                      >
-                        {active ? <Check size={14} aria-hidden="true" /> : null}
-                        {option.label}
-                      </button>
-                    );
-                  })}
+                  {POSSIBLE_FACTOR_OPTIONS.map((option) => (
+                    <Chip
+                      key={option.value}
+                      active={answers.possibleFactors.includes(option.value)}
+                      onClick={() => toggleFactor(option.value)}
+                    >
+                      {option.label}
+                    </Chip>
+                  ))}
                 </div>
                 {answers.possibleFactors.includes("other") ? (
                   <div className="mt-3">
@@ -242,12 +373,13 @@ export function SetupSurvey() {
                 ) : null}
               </div>
 
-              <SelectField
-                label="How is this affecting your day-to-day life?"
+              <OptionCards
+                name="dayToDay"
+                legend="How is this affecting your day-to-day life?"
+                options={DAY_TO_DAY_OPTIONS}
                 value={answers.dayToDay}
                 onChange={update("dayToDay")}
                 error={errors.dayToDay}
-                options={[{ value: "", label: "Choose one" }, ...DAY_TO_DAY_OPTIONS]}
               />
 
               <TextArea
@@ -262,39 +394,27 @@ export function SetupSurvey() {
           </fieldset>
         </Card>
 
-        <Card className="p-5 sm:p-6">
+        <Card className="p-5 shadow-[0_12px_32px_-24px_rgba(36,28,34,0.45)] sm:p-6">
           <fieldset>
-            <legend className="font-serif text-lg font-semibold">Could your menstrual cycle be relevant?</legend>
-            <p className="hint mt-1 max-w-prose">
-              Optional. If you notice symptoms changing around your cycle, Advoc8 can keep that
-              context alongside your other tracking.
-            </p>
+            <CardHeading
+              as="legend"
+              icon={CalendarHeart}
+              title="Could your menstrual cycle be relevant?"
+              description="Optional. If you notice symptoms changing around your cycle, Advoc8 can keep that context alongside your other tracking."
+            />
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {CYCLE_RELEVANCE_OPTIONS.map((option) => {
-                const active = answers.cycleRelevance === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => toggleCycleRelevance(option.value)}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
-                      active
-                        ? "border-accent-muted bg-accent-soft text-accent-strong"
-                        : "border-border-strong text-muted hover:bg-secondary-bg hover:text-foreground",
-                    )}
-                  >
-                    {active ? <Check size={14} aria-hidden="true" /> : null}
-                    {option.label}
-                  </button>
-                );
-              })}
+            <div className="mt-5">
+              <OptionCards
+                name="cycleRelevance"
+                columns="sm:grid-cols-3"
+                options={CYCLE_RELEVANCE_OPTIONS}
+                value={answers.cycleRelevance}
+                onChange={toggleCycleRelevance}
+              />
             </div>
 
             {answers.cycleRelevance === "yes" ? (
-              <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <div className="mt-5 grid gap-5 rounded-xl bg-secondary-bg p-4 sm:grid-cols-2">
                 <SelectField
                   label="Typical cycle length"
                   value={answers.cycleLength}
@@ -315,14 +435,16 @@ export function SetupSurvey() {
           </fieldset>
         </Card>
 
-        <div className="space-y-3 border-t border-border pt-5">
+        <div className="space-y-3 rounded-2xl border border-border bg-surface p-5">
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit">Complete Setup</Button>
+            <Button type="submit" size="lg">
+              Complete Setup
+            </Button>
             <Button type="button" variant="ghost" onClick={skipOnboarding}>
               Skip for Now
             </Button>
           </div>
-          <p className="hint">
+          <p className="hint max-w-prose">
             Skipping keeps the Symptom Tracker open. Everything else stays locked until setup is
             done, and this reminder comes back.
           </p>
