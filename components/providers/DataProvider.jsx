@@ -18,7 +18,7 @@ import {
   SAMPLE_APPOINTMENT_GOAL,
   SAMPLE_GOAL_IDS,
 } from "@/lib/seed/maya";
-import { draftStore, resetBriefDraft, seedBriefDraft } from "@/lib/use-brief-draft";
+import { draftStore, resetBriefDraft, seedBriefDraft } from "@/lib/brief-draft";
 
 const EMPTY_ENTRIES = Object.freeze({ symptomEntries: [], contextEntries: [] });
 const LOCAL_USER_ID = "user-local";
@@ -177,11 +177,11 @@ export function DataProvider({ children }) {
   }, [setOnboarding]);
 
   /**
-   * Loads Maya's sample data. This is the developer override behind the landing
-   * page.
+   * Loads Maya's sample data. Offered from Home when there is nothing tracked
+   * yet, and from Settings at any other time.
    *
    * `unlock: true` — the finished app: sample profile included, so every
-   * feature is open and a dev can see all of it at once.
+   * feature is open and the brief is immediately readable.
    *
    * `unlock: false` — the same tracking rows behind a first-run profile: the
    * survey still asks its questions, and until they are answered the
@@ -255,7 +255,7 @@ export function DataProvider({ children }) {
       draft,
       setStatement,
       setAppointmentGoal,
-setQuestions,
+      setQuestions,
       toggleGoal,
       addSymptomEntry,
       removeSymptomEntry,
@@ -270,7 +270,7 @@ setQuestions,
       dismissReminder: () => setIsReminderDismissed(true),
       isReminderDismissed,
       today: todayIso(),
-    ]),
+    }),
     [
       profile,
       onboarding,
