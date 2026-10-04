@@ -105,7 +105,12 @@ export default function PreparePage() {
           </div>
 
           {report.isEmpty ? null : (
-            <PrintDoctorSummaryButton report={report} user={user} draft={draft} />
+            <div className="flex items-center gap-4">
+              <PrintDoctorSummaryButton report={report} user={user} draft={draft} />
+              <p className="text-sm text-muted whitespace-nowrap">
+                A convenient way to bring your insights to your appointment
+              </p>
+            </div>
           )}
         </div>
 

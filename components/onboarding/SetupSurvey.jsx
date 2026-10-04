@@ -25,8 +25,11 @@ const EMPTY_ANSWERS = {
   firstNoticed: "",
   symptoms: [],
   otherSymptom: "",
+  possibleFactors: [],
+  otherFactor: "",
   dayToDay: "",
   doctorNote: "",
+  cycleRelevance: "",
   tracksCycle: null,
   cycleLength: "",
   lastPeriodStart: "",
@@ -61,14 +64,41 @@ export function SetupSurvey() {
     setErrors((previous) => ({ ...previous, otherSymptom: undefined }));
   }
 
-  function toggleCycleTracking(answer) {
+  function toggleCycleRelevance(value) {
     setAnswers((previous) => ({
       ...previous,
-      tracksCycle: answer,
-      cycleLength: answer ? previous.cycleLength : "",
-      lastPeriodStart: answer ? previous.lastPeriodStart : "",
+      cycleRelevance: previous.cycleRelevance === value ? "" : value,
+      // Only an explicit yes keeps the cycle details. Anything else clears them,
+      // so choosing "I'm not sure" cannot leave a stale date behind.
+      cycleLength: value === "yes" ? previous.cycleLength : "",
+      lastPeriodStart: value === "yes" ? previous.lastPeriodStart : "",
     }));
     setErrors((previous) => ({ ...previous, cycleLength: undefined, lastPeriodStart: undefined }));
+  }
+
+  const NOTHING_YET = "nothing-yet";
+
+  function toggleFactor(value) {
+    setAnswers((previous) => {
+      const isOn = previous.possibleFactors.includes(value);
+
+      if (value === NOTHING_YET) {
+        return { ...previous, possibleFactors: isOn ? [] : [NOTHING_YET] };
+      }
+
+      // "Nothing I've noticed yet" is the absence of an observation, so it can
+      // never sit in the list next to one.
+      const withoutNothing = previous.possibleFactors.filter((item) => item !== NOTHING_YET);
+
+      return {
+        ...previous,
+        possibleFactors: isOn
+          ? withoutNothing
+          : [...withoutNothing, value],
+      };
+    });
+
+    setErrors((previous) => ({ ...previous, otherFactor: undefined }));
   }
 
   function handleSubmit(event) {
@@ -89,8 +119,8 @@ export function SetupSurvey() {
           Let&rsquo;s set up your profile
         </h1>
         <p className="hint mt-1.5 max-w-prose">
-          Five short questions so Advoc8 knows what to build your record around. You can change any
-          of it later, and you can skip it entirely.
+          Answer a few questions to give Advoc8 some context. You can update anything later or skip
+          setup for now.
         </p>
       </header>
 
@@ -110,11 +140,11 @@ export function SetupSurvey() {
 
         <Card className="p-5 sm:p-6">
           <fieldset>
-            <legend className="font-serif text-lg font-semibold">About your concern</legend>
+            <legend className="font-serif text-lg font-semibold">What&rsquo;s been going on?</legend>
 
             <div className="mt-4 space-y-5">
               <TextArea
-                label="What is the main health concern you want to keep track of?"
+                label="What has been going on?"
                 required
                 rows={3}
                 value={answers.concern}
@@ -169,6 +199,47 @@ export function SetupSurvey() {
                 ) : null}
               </div>
 
+              <div>
+                <span className="label">What have you noticed?</span>
+                <p className="hint mb-2.5 max-w-prose">
+                  Only choose things you&rsquo;ve personally noticed or want to keep an eye on.
+                  Advoc8 does not assume they are causes.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {POSSIBLE_FACTOR_OPTIONS.map((option) => {
+                    const active = answers.possibleFactors.includes(option.value);
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => toggleFactor(option.value)}
+                        aria-pressed={active}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+                          active
+                            ? "border-accent-muted bg-accent-soft text-accent-strong"
+                            : "border-border-strong text-muted hover:bg-secondary-bg hover:text-foreground",
+                        )}
+                      >
+                        {active ? <Check size={14} aria-hidden="true" /> : null}
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {answers.possibleFactors.includes("other") ? (
+                  <div className="mt-3">
+                    <TextField
+                      label="Something else"
+                      value={answers.otherFactor}
+                      onChange={update("otherFactor")}
+                      error={errors.otherFactor}
+                      placeholder="e.g. Long flights"
+                    />
+                  </div>
+                ) : null}
+              </div>
+
               <SelectField
                 label="How is this affecting your day-to-day life?"
                 value={answers.dayToDay}
@@ -191,24 +262,21 @@ export function SetupSurvey() {
 
         <Card className="p-5 sm:p-6">
           <fieldset>
-            <legend className="font-serif text-lg font-semibold">Menstrual cycle</legend>
+            <legend className="font-serif text-lg font-semibold">Could your menstrual cycle be relevant?</legend>
             <p className="hint mt-1 max-w-prose">
-              Optional. Cycle timing is one of the patterns Advoc8 can look for alongside sleep and
-              stress.
+              Optional. If you notice symptoms changing around your cycle, Advoc8 can keep that
+              context alongside your other tracking.
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {[
-                { label: "Yes", answer: true },
-                { label: "No", answer: false },
-              ].map((option) => {
-                const active = answers.tracksCycle === option.answer;
+              {CYCLE_RELEVANCE_OPTIONS.map((option) => {
+                const active = answers.cycleRelevance === option.value;
                 return (
                   <button
-                    key={option.label}
+                    key={option.value}
                     type="button"
                     aria-pressed={active}
-                    onClick={() => toggleCycleTracking(option.answer)}
+                    onClick={() => toggleCycleRelevance(option.value)}
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
                       active
@@ -223,7 +291,7 @@ export function SetupSurvey() {
               })}
             </div>
 
-            {answers.tracksCycle === true ? (
+            {answers.cycleRelevance === "yes" ? (
               <div className="mt-5 grid gap-5 sm:grid-cols-2">
                 <SelectField
                   label="Typical cycle length"
