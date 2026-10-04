@@ -41,7 +41,6 @@ function optionLabel(options, value) {
 export default function SettingsPage() {
   const {
     user,
-    access,
     report,
     symptomEntries,
     contextEntries,
@@ -69,8 +68,8 @@ export default function SettingsPage() {
           title="Your profile"
           description="What Advoc8 knows about you. It comes from your setup survey, nothing else."
           action={
-            <Badge tone={access.setupComplete ? "success" : "warning"}>
-              {access.setupComplete ? "Setup complete" : "Setup not finished"}
+            <Badge tone={user.isSample ? "outline" : "success"}>
+              {user.isSample ? "Sample record" : "Your own answers"}
             </Badge>
           }
         />
@@ -98,12 +97,6 @@ export default function SettingsPage() {
           ))}
         </dl>
 
-        <div className="mt-5">
-          <Button href="/setup" variant="outline">
-            <UserRound size={16} aria-hidden="true" />
-            {access.setupComplete ? "Redo setup" : "Complete Setup"}
-          </Button>
-        </div>
       </Card>
 
       <Card className="p-5 sm:p-6">

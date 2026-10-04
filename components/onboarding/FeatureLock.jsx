@@ -1,18 +1,11 @@
 "use client";
 
-import { Lock, NotebookPen, UserRound } from "lucide-react";
+import { Lock, NotebookPen } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
 
-const SETUP_STEPS = [
-  "Answer five short questions about what you want to keep track of.",
-  "Your Evidence Brief opens with your own words instead of a blank page.",
-  "The rehearsal gets a lead symptom to work from.",
-];
-
-const TRACKING_STEP = "Log at least two symptom entries so there is a pattern to practise with.";
 
 /**
  * Shown when a locked feature is clicked. Every lock in the app routes through
@@ -23,8 +16,6 @@ export function UnlockModal() {
 
   if (!lockedFeature) return null;
 
-  const needsSetup = lockedFeature.requirement === "setup";
-
   return (
     <Modal
       isOpen
@@ -34,37 +25,19 @@ export function UnlockModal() {
       size="sm"
     >
       <div className="space-y-5">
-        <ul className="space-y-2.5">
-          {(needsSetup ? SETUP_STEPS : [TRACKING_STEP]).map((step) => (
-            <li key={step} className="flex items-start gap-2.5 text-sm leading-relaxed text-muted">
-              <span
-                aria-hidden="true"
-                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent-strong"
-              />
-              {step}
-            </li>
-          ))}
-        </ul>
-
-        <p className="hint flex items-center gap-2">
-          <NotebookPen size={14} aria-hidden="true" />
-          Logging symptoms stays open either way.
+        <p className="hint">
+          A few days is the smallest amount of history that can honestly be called a pattern. One
+          bad afternoon logged three times is not a record.
         </p>
 
         <div className="flex justify-end gap-3 border-t border-border pt-4">
           <Button variant="ghost" onClick={closeFeaturePrompt}>
             Not now
           </Button>
-          {lockedFeature.action?.href === "/setup" ? (
-            <Button href="/setup" onClick={closeFeaturePrompt}>
-              <UserRound size={16} aria-hidden="true" />
-              {lockedFeature.action.label}
-            </Button>
-          ) : (
-            <Button href={lockedFeature.action.href} onClick={closeFeaturePrompt}>
-              {lockedFeature.action.label}
-            </Button>
-          )}
+          <Button href={lockedFeature.action.href} onClick={closeFeaturePrompt}>
+            <NotebookPen size={16} aria-hidden="true" />
+            {lockedFeature.action.label}
+          </Button>
         </div>
       </div>
     </Modal>
@@ -81,8 +54,6 @@ export function FeatureLock({ featureId, children }) {
 
   if (!feature || feature.unlocked) return children;
 
-  const needsSetup = feature.requirement === "setup";
-
   return (
     <Card tone="quiet" className="px-5 py-8 text-center sm:px-6">
       <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft">
@@ -91,12 +62,6 @@ export function FeatureLock({ featureId, children }) {
 
       <p className="mt-4 font-serif text-xl font-semibold text-foreground">{feature.title}</p>
       <p className="hint mx-auto mt-1.5 max-w-md">{feature.message}</p>
-
-      {needsSetup ? (
-        <p className="hint mx-auto mt-3 max-w-md">
-          Five short questions. You can skip them and come back later.
-        </p>
-      ) : null}
 
       {feature.action ? (
         <Button href={feature.action.href} className="mt-5">

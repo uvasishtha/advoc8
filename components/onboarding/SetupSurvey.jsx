@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CalendarHeart, Check, ClipboardList, NotebookPen, Sparkle, UserRound } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
@@ -15,8 +16,6 @@ import {
   FIRST_NOTICED_OPTIONS,
   POSSIBLE_FACTOR_OPTIONS,
   SURVEY_SYMPTOM_OPTIONS,
-  normaliseSurvey,
-  validateSurvey,
 } from "@/lib/onboarding";
 import { todayIso } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -148,22 +147,26 @@ function CardHeading({ icon: Icon, title, description, as: Wrapper = "div" }) {
 }
 
 /**
- * The initial setup survey: five questions, an optional cycle block, and two
- * ways out. Every question here exists because the Evidence Brief or the
- * rehearsal is measurably better with the answer.
+ * The setup survey: the questions Advoc8 asks, and the way into the app.
+ *
+ * There is one way out of this page. "Skip for Now" loads the sample month and
+ * returns to the dashboard, so a first visit lands on a working app rather than
+ * an empty record or a lock. The answers are collected and then discarded: the
+ * fields are here because this page is the product's front door, and because
+ * turning the survey back on should be a button rather than a rewrite.
  *
  * Rendered in two places — in front of the app on a first visit, and at /setup
- * for anyone coming back to finish — so both entry points share this component.
+ * for anyone who navigates back to it — so both entry points share this
+ * component.
  */
 export function SetupSurvey() {
-  const { completeOnboarding, skipOnboarding } = useAdvoc8();
+  const { skipOnboarding } = useAdvoc8();
+  const router = useRouter();
   const [answers, setAnswers] = useState(EMPTY_ANSWERS);
-  const [errors, setErrors] = useState({});
 
   const update = (field) => (event) => {
     const value = event?.target ? event.target.value : event;
     setAnswers((previous) => ({ ...previous, [field]: value }));
-    setErrors((previous) => ({ ...previous, [field]: undefined }));
   };
 
   function toggleSymptom(name) {
@@ -173,7 +176,6 @@ export function SetupSurvey() {
         ? previous.symptoms.filter((item) => item !== name)
         : [...previous.symptoms, name],
     }));
-    setErrors((previous) => ({ ...previous, otherSymptom: undefined }));
   }
 
   function toggleCycleRelevance(value) {
@@ -185,7 +187,6 @@ export function SetupSurvey() {
       cycleLength: value === "yes" ? previous.cycleLength : "",
       lastPeriodStart: value === "yes" ? previous.lastPeriodStart : "",
     }));
-    setErrors((previous) => ({ ...previous, cycleLength: undefined, lastPeriodStart: undefined }));
   }
 
   function toggleFactor(value) {
@@ -207,18 +208,17 @@ export function SetupSurvey() {
           : [...withoutNothing, value],
       };
     });
-
-    setErrors((previous) => ({ ...previous, otherFactor: undefined }));
   }
 
-  function handleSubmit(event) {
+  /**
+   * The only exit. Loads the sample month, then goes to the dashboard: the survey
+   * is shown in place of whatever route was opened, so without the redirect a
+   * visitor who arrived on /track would finish up somewhere they did not ask for.
+   */
+  function enterTheApp(event) {
     event.preventDefault();
-
-    const nextErrors = validateSurvey(answers);
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-
-    completeOnboarding(normaliseSurvey(answers));
+    skipOnboarding();
+    router.push("/");
   }
 
   return (
@@ -239,8 +239,8 @@ export function SetupSurvey() {
             Let&rsquo;s set up your profile
           </h1>
           <p className="hint mt-2 max-w-prose">
-            Answer a few questions to give Advoc8 some context. You can update anything later or
-            skip setup for now.
+            These are the questions Advoc8 asks about your health. Nothing is saved here yet
+            &mdash; skip ahead to open the app with a sample month already loaded.
           </p>
 
           <ul className="mt-6 grid gap-2.5 sm:grid-cols-3">
@@ -265,7 +265,7 @@ export function SetupSurvey() {
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      <form onSubmit={enterTheApp} noValidate className="space-y-5">
         <Card className="p-5 shadow-[0_12px_32px_-24px_rgba(36,28,34,0.45)] sm:p-6">
           <CardHeading
             icon={UserRound}
@@ -276,10 +276,8 @@ export function SetupSurvey() {
           <div className="mt-5">
             <TextField
               label="What should Advoc8 call you?"
-              required
               value={answers.firstName}
               onChange={update("firstName")}
-              error={errors.firstName}
               placeholder="Maya"
               autoComplete="given-name"
               maxLength={60}
@@ -299,11 +297,9 @@ export function SetupSurvey() {
             <div className="mt-5 space-y-6">
               <TextArea
                 label="What has been going on?"
-                required
                 rows={3}
                 value={answers.concern}
                 onChange={update("concern")}
-                error={errors.concern}
                 placeholder="Headaches and fatigue have been showing up most days for the past month."
                 hint="In your own words. This becomes the opening of your Evidence Brief."
               />
@@ -314,7 +310,6 @@ export function SetupSurvey() {
                 options={FIRST_NOTICED_OPTIONS}
                 value={answers.firstNoticed}
                 onChange={update("firstNoticed")}
-                error={errors.firstNoticed}
               />
 
               <div>
@@ -336,7 +331,6 @@ export function SetupSurvey() {
                       label="Your wording for it"
                       value={answers.otherSymptom}
                       onChange={update("otherSymptom")}
-                      error={errors.otherSymptom}
                       placeholder="e.g. Tingling in my left hand"
                     />
                   </div>
@@ -366,7 +360,6 @@ export function SetupSurvey() {
                       label="Something else"
                       value={answers.otherFactor}
                       onChange={update("otherFactor")}
-                      error={errors.otherFactor}
                       placeholder="e.g. Long flights"
                     />
                   </div>
@@ -379,7 +372,6 @@ export function SetupSurvey() {
                 options={DAY_TO_DAY_OPTIONS}
                 value={answers.dayToDay}
                 onChange={update("dayToDay")}
-                error={errors.dayToDay}
               />
 
               <TextArea
@@ -419,7 +411,6 @@ export function SetupSurvey() {
                   label="Typical cycle length"
                   value={answers.cycleLength}
                   onChange={update("cycleLength")}
-                  error={errors.cycleLength}
                   options={[{ value: "", label: "Choose one" }, ...CYCLE_LENGTH_OPTIONS]}
                 />
                 <TextField
@@ -428,7 +419,6 @@ export function SetupSurvey() {
                   value={answers.lastPeriodStart}
                   max={todayIso()}
                   onChange={update("lastPeriodStart")}
-                  error={errors.lastPeriodStart}
                 />
               </div>
             ) : null}
@@ -436,18 +426,15 @@ export function SetupSurvey() {
         </Card>
 
         <div className="space-y-3 rounded-2xl border border-border bg-surface p-5">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <Button type="submit" size="lg">
-              Complete Setup
-            </Button>
-            <Button type="button" variant="ghost" onClick={skipOnboarding}>
               Skip for Now
             </Button>
+            <p className="hint min-w-0 flex-1 max-w-prose">
+              Takes you to the dashboard with Maya&rsquo;s sample month already loaded, so there is a
+              full brief waiting to be read. Nothing here is saved.
+            </p>
           </div>
-          <p className="hint max-w-prose">
-            Skipping keeps the Symptom Tracker open. Everything else stays locked until setup is
-            done, and this reminder comes back.
-          </p>
         </div>
       </form>
 

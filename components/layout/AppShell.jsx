@@ -7,7 +7,6 @@ import { Logo } from "./Logo";
 import { cn } from "@/lib/utils";
 import { FEATURE_IDS } from "@/lib/onboarding";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
-import { SetupReminder } from "@/components/onboarding/SetupReminder";
 import { UnlockModal } from "@/components/onboarding/FeatureLock";
 
 // The four destinations, in the order the product is used. Practice is last
@@ -22,10 +21,7 @@ const NAV_ITEMS = [
 
 export function AppShell({ children }) {
   const pathname = usePathname();
-  const { user, access, isReady, isReminderDismissed, dismissReminder } = useAdvoc8();
-
-  const isSetupRoute = pathname.startsWith("/setup");
-  const showReminder = isReady && access.needsSetup && !isReminderDismissed && !isSetupRoute;
+  const { user, access, isReady } = useAdvoc8();
 
   function navClass(active, locked) {
     return cn(
@@ -86,7 +82,7 @@ export function AppShell({ children }) {
           </Link>
 
           <Link
-            href="/setup"
+            href="/"
             className="mt-3 flex items-center gap-3 rounded-full bg-secondary-bg px-3 py-2 transition-colors hover:bg-accent-soft"
           >
             <span
@@ -100,7 +96,7 @@ export function AppShell({ children }) {
                 {user.displayName}
               </span>
               <span className="block truncate text-xs text-muted">
-                {access.setupComplete ? "Profile set up" : "Setup not finished"}
+                {user.isSample ? "Sample record" : "Your record"}
               </span>
             </span>
           </Link>
@@ -141,8 +137,6 @@ export function AppShell({ children }) {
             })}
           </nav>
         </header>
-
-        {showReminder ? <SetupReminder onDismiss={dismissReminder} /> : null}
 
         <main id="main" className="min-w-0 flex-1">
           {children}

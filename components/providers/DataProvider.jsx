@@ -52,10 +52,8 @@ export function DataProvider({ children }) {
   const [onboarding, setOnboarding, onboardingReady] = useLocalStore(onboardingStore);
   const [draft, setDraft, draftReady] = useLocalStore(draftStore);
 
-  // Transient UI state: which lock was clicked, and whether the setup reminder
-  // was dismissed for this visit. Neither is worth persisting.
+  // Transient UI state: which lock was clicked. Not worth persisting.
   const [lockedFeatureId, setLockedFeatureId] = useState(null);
-  const [isReminderDismissed, setIsReminderDismissed] = useState(false);
 
   const isReady = entriesReady && onboardingReady && draftReady;
   const { symptomEntries, contextEntries } = entries;
@@ -160,14 +158,31 @@ export function DataProvider({ children }) {
     [setOnboarding],
   );
 
+  /** Maya's sample month: the tracking rows, and the words her brief is built on. */
+  const loadSampleRecords = useCallback(() => {
+    setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
+    seedBriefDraft({ statement: SAMPLE_ONBOARDING.doctorNote });
+  }, [setEntries]);
+
+  /**
+   * Skipping is not an empty profile. It hands over the sample month in full, so
+   * the app has something to show on the other side of the survey instead of an
+   * empty dashboard and two locked features.
+   *
+   * The status stays "skipped" rather than "completed": nothing was answered, so
+   * the reminder that setup is unfinished keeps its honesty, and Settings still
+   * offers to redo it.
+   */
   const skipOnboarding = useCallback(() => {
-    setOnboarding((current) => ({
-      ...EMPTY_ONBOARDING,
-      ...current,
+    loadSampleRecords();
+
+    setOnboarding({
+      ...SAMPLE_ONBOARDING,
       status: SETUP_STATUS.SKIPPED,
+      completedAt: null,
       skippedAt: new Date().toISOString(),
-    }));
-  }, [setOnboarding]);
+    });
+  }, [loadSampleRecords, setOnboarding]);
 
   /**
    * Loads Maya's sample data. Offered from Home when there is nothing tracked
@@ -184,20 +199,20 @@ export function DataProvider({ children }) {
    */
   const resetToSampleData = useCallback(
     ({ unlock = true } = {}) => {
-      setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
-
       if (unlock) {
+        loadSampleRecords();
         setOnboarding({ ...SAMPLE_ONBOARDING });
-        seedBriefDraft({ statement: SAMPLE_ONBOARDING.doctorNote });
         return;
       }
 
-      // No sample words here: these are a stranger's records, not this person's
-      // profile. The survey supplies the statement once it is answered.
+      // The same tracking rows behind a blank profile, and none of Maya's words:
+      // these are a stranger's records, and the survey supplies the statement
+      // once it is answered.
+      setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
       setOnboarding({ ...EMPTY_ONBOARDING });
       resetBriefDraft();
     },
-    [setEntries, setOnboarding],
+    [loadSampleRecords, setEntries, setOnboarding],
   );
 
   const clearAllEntries = useCallback(() => {
@@ -209,7 +224,6 @@ export function DataProvider({ children }) {
     setEntries(EMPTY_ENTRIES);
     setOnboarding({ ...EMPTY_ONBOARDING });
     resetBriefDraft();
-    setIsReminderDismissed(false);
   }, [setEntries, setOnboarding]);
 
   /**
@@ -254,8 +268,6 @@ export function DataProvider({ children }) {
       startFresh,
       requestFeature,
       closeFeaturePrompt,
-      dismissReminder: () => setIsReminderDismissed(true),
-      isReminderDismissed,
       today: todayIso(),
     }),
     [
@@ -281,7 +293,6 @@ export function DataProvider({ children }) {
       startFresh,
       requestFeature,
       closeFeaturePrompt,
-      isReminderDismissed,
     ],
   );
 
