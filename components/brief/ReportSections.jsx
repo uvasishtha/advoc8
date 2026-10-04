@@ -1,6 +1,7 @@
 "use client";
 
-import { Eye, ListChecks } from "lucide-react";
+import { Eye, ListChecks, Target } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/Notice";
 import { ProvenanceTag } from "@/components/brief/Provenance";
@@ -19,8 +20,55 @@ export function ExperiencingSection({ report, user }) {
     .filter(Boolean)
     .sort()[0];
 
+  const [targetVisible, setTargetVisible] = useState(false);
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTargetVisible(true);
+      setTimeout(() => setPulse(true), 300);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="space-y-5">
+      {targetVisible && (
+        <div
+          className="flex items-center justify-center mb-4"
+          style={{ animation: pulse ? "pulse-ring 2s ease-out infinite" : "none" }}
+        >
+          <div
+            className="relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-accent-strong to-accent-glow/60 shadow-[0_0_30px_rgba(255,100,100,0.4)] transition-all duration-500"
+            style={{ animation: pulse ? "float 3s ease-in-out infinite" : "none" }}
+            aria-hidden="true"
+          >
+            <Target size={22} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" />
+            <span
+              className="absolute inset-0 rounded-full border-2 border-accent-strong/30 animate-ping"
+              aria-hidden="true"
+            />
+            <span
+              className="absolute inset-0 rounded-full border-2 border-accent-strong/20 animate-ping"
+              style={{ animationDelay: "1s" }}
+              aria-hidden="true"
+            />
+          </div>
+          <style jsx>{`
+            @keyframes pulse-ring {
+              0% { transform: scale(1); opacity: 1; }
+              50% { transform: scale(1.05); opacity: 0.8; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+            @keyframes float {
+              0% { transform: translateY(0); }
+              50% { transform: translateY(-6px); }
+              100% { transform: translateY(0); }
+            }
+          `}</style>
+        </div>
+      )}
+
       {user.concern ? (
         <Card tone="soft" className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
@@ -47,7 +95,7 @@ export function ExperiencingSection({ report, user }) {
         {report.experience.map((line) => (
           <li
             key={line}
-            className="rounded-xl border border-border bg-surface px-4 py-3.5 text-[0.9375rem] leading-relaxed text-foreground"
+            className="rounded-xl border border-border bg-surface px-4 py-3.5 text-[0.9375rem] leading-relaxed text-foreground transition-all duration-300 hover:border-accent-muted/50 hover:bg-accent-soft/20 hover:shadow-[0_4px_20px_rgba(255,100,100,0.08)]"
           >
             {line}
           </li>

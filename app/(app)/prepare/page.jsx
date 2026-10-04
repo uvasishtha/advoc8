@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, FileText, MessagesSquare, Target } from "lucide-react";
+import { ArrowRight, FileText, MessagesSquare } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { FeatureLock } from "@/components/onboarding/FeatureLock";
@@ -36,9 +36,7 @@ export default function PreparePage() {
     access,
     draft,
     setStatement,
-    setAppointmentGoal,
     setQuestions,
-    toggleGoal,
   } = useAdvoc8();
 
   if (!isReady) return null;
@@ -137,7 +135,9 @@ export default function PreparePage() {
           <div className="space-y-14">
             <ProvenanceLegend />
 
-            {sections.map((section) => (
+            <nav aria-label="Brief sections" className="mt-4">
+              <ul className="flex flex-wrap gap-2">
+                {sections.map((section) => (
                     <li key={section.number}>
                       <a
                         href={`#section-${section.number}`}
