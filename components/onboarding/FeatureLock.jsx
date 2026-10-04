@@ -106,28 +106,3 @@ export function FeatureLock({ featureId, children }) {
     </Card>
   );
 }
-
-/**
- * A Button that navigates when the feature is open and explains itself when it
- * is not. Used wherever a locked feature is offered as a link.
- */
-export function GatedButton({ featureId, children, ...props }) {
-  const { access, requestFeature } = useAdvoc8();
-  const feature = access.features[featureId];
-  const isLocked = feature ? !feature.unlocked : false;
-
-  return (
-    <Button
-      {...props}
-      aria-disabled={isLocked || undefined}
-      onClick={(event) => {
-        if (isLocked) {
-          event.preventDefault();
-          requestFeature(featureId);
-        }
-      }}
-    >
-      {children}
-    </Button>
-  );
-}

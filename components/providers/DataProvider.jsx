@@ -246,7 +246,6 @@ export function DataProvider({ children }) {
       profile,
       onboarding,
       isReady,
-      isLoading: !isReady,
       symptomEntries,
       contextEntries,
       report,

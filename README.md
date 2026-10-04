@@ -69,17 +69,14 @@ Users can turn their tracking history into a structured **Advoc8 Evidence Brief*
 
 The brief includes:
 
-1. **What I've Been Experiencing**
-2. **Symptom Timeline**
-3. **Quantitative Trends**
-4. **Patterns in My Data**
-5. **Measured Differences**
-6. **Changes Over Time**
-7. **What I Want My Doctor to Know**
-8. **Questions I Want to Ask**
-9. **Before My Appointment**
+1. **What I've Been Experiencing** — plain-language lines built from frequency, severity and duration
+2. **What I've Noticed** — a short, ranked set of observations from your own record
+3. **Make Sure I Mention** — the gaps in your record a clinician will otherwise have to ask about
+4. **What I Want Them to Understand** — your own statement, editable in place
+5. **Questions I Want to Ask** — generated from the brief, with a deterministic fallback
 
-The brief can be downloaded as a PDF, or printed as a one-page Doctor Summary.
+Nothing in the brief is charted, and there is no PDF or print export. The brief is a page you read
+and edit before the appointment.
 
 ---
 
@@ -136,9 +133,9 @@ cp .env.example .env.local   # optional: only needed for the AI features
 npm run dev
 ```
 
-The app opens with **Open the sample brief** on the landing page, which loads Maya R's month of
-September 2026 tracking so every section has data in it. You can also log your own entries
-instead, or reset at any time from **Settings → Your data**.
+The app opens on **Home**. Use **Settings → Your data** to load Maya R's sample month of September
+2026 tracking, which fills every section of the brief, and to reset back to your own entries at
+any time.
 
 ### Environment
 

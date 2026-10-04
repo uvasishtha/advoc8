@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Numbered brief section, e.g. "03 — Quantitative Trends".
+ * Numbered brief section, e.g. "03 — Make sure I mention".
  * The number is decorative; the heading carries the meaning.
  */
 export function Section({ number, title, description, children, className, actions }) {
@@ -22,34 +22,5 @@ export function Section({ number, title, description, children, className, actio
       </header>
       {children}
     </section>
-  );
-}
-
-export function StatGrid({ children, className, columns = 4 }) {
-  const map = {
-    2: "sm:grid-cols-2",
-    3: "sm:grid-cols-2 lg:grid-cols-3",
-    4: "sm:grid-cols-2 lg:grid-cols-4",
-  };
-
-  return <div className={cn("grid grid-cols-1 gap-3", map[columns], className)}>{children}</div>;
-}
-
-export function Stat({ value, label, hint, unit, tone = "default", className }) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl border p-4",
-        tone === "accent" ? "border-accent-muted bg-accent-soft" : "border-border bg-surface",
-        className,
-      )}
-    >
-      <p className="font-serif text-3xl font-semibold leading-none text-foreground">
-        {value}
-        {unit ? <span className="ml-1 font-sans text-sm font-medium text-muted">{unit}</span> : null}
-      </p>
-      <p className="mt-2 text-sm font-medium text-foreground">{label}</p>
-      {hint ? <p className="hint mt-0.5">{hint}</p> : null}
-    </div>
   );
 }

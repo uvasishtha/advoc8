@@ -17,7 +17,7 @@ export function Logo({ className, asLink = true }) {
   if (!asLink) return mark;
 
   return (
-    <Link href="/dashboard" className="rounded-full">
+    <Link href="/" className="rounded-full">
       {mark}
     </Link>
   );
