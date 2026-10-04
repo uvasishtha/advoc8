@@ -258,7 +258,7 @@ function SeverityTrendChartWrapper({ report }) {
     name: symptom.name,
     points: symptom.dailySeries?.map((point) => ({
       date: point.date,
-      value: point.value,
+      value: point.severity,
     })) ?? [],
   }));
 
