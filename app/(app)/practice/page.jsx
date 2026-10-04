@@ -7,6 +7,7 @@ import { FeatureLock } from "@/components/onboarding/FeatureLock";
 import { FEATURE_IDS } from "@/lib/onboarding";
 import { Disclaimer } from "@/components/ui/Notice";
 import { PracticeChat } from "@/components/practice/PracticeChat";
+import { ConnectionsToBringUp } from "@/components/brief/ConnectionsToBringUp";
 
 /**
  * Practice your conversation.
@@ -16,7 +17,7 @@ import { PracticeChat } from "@/components/practice/PracticeChat";
  * deliberate: this is the last step of the prepare flow, not a place you live.
  */
 export default function PracticePage() {
-  const { isReady, report, access, draft } = useAdvoc8();
+  const { isReady, report, access, draft, connections } = useAdvoc8();
 
   const isLocked = !access.features[FEATURE_IDS.PRACTICE].unlocked;
 
@@ -44,7 +45,10 @@ export default function PracticePage() {
 
       <FeatureLock featureId={FEATURE_IDS.PRACTICE}>
         {isReady ? (
-          <PracticeChat report={report} questions={draft.questions} />
+          <div className="space-y-6">
+            <ConnectionsToBringUp connections={connections} />
+            <PracticeChat report={report} questions={draft.questions} connections={connections} />
+          </div>
         ) : null}
       </FeatureLock>
 

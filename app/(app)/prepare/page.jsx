@@ -10,7 +10,7 @@ import { Section } from "@/components/ui/Section";
 import { EmptyState } from "@/components/ui/Notice";
 import { PrintDoctorSummaryButton } from "@/components/brief/PrintDoctorSummaryButton";
 import { QuestionsSection, StatementSection } from "@/components/brief/EditableSections";
-import { ExperiencingSection, GapsSection, NoticedSection } from "@/components/brief/ReportSections";
+import { ExperiencingSection, GapsSection, ConnectionsSection, NoticedSection } from "@/components/brief/ReportSections";
 import { ProvenanceLegend } from "@/components/brief/Provenance";
 import { SeverityTrendChart } from "@/components/charts/Charts";
 import { cn } from "@/lib/utils";
@@ -36,6 +36,7 @@ export default function PreparePage() {
     user,
     access,
     draft,
+    connections,
     setStatement,
     setQuestions,
   } = useAdvoc8();
@@ -63,6 +64,13 @@ export default function PreparePage() {
       source: "record",
       description: "The few things your record shows that are worth saying out loud.",
       body: <NoticedSection report={report} />,
+    },
+    {
+      number: "06",
+      title: "Patterns worth discussing",
+      source: "record",
+      description: "The strongest relationships between your symptoms and the context you have tracked.",
+      body: <ConnectionsSection connections={connections} />,
     },
     {
       number: "03",
@@ -106,7 +114,7 @@ export default function PreparePage() {
 
           {report.isEmpty ? null : (
             <div className="flex items-center gap-4">
-              <PrintDoctorSummaryButton report={report} user={user} draft={draft} />
+              <PrintDoctorSummaryButton report={report} user={user} draft={draft} connections={connections} />
               <p className="text-sm text-muted whitespace-nowrap">
                 A convenient way to bring your insights to your appointment
               </p>

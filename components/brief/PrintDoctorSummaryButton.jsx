@@ -21,13 +21,13 @@ import { todayIso } from "@/lib/format";
  * resolves print() asynchronously, so removing the sheet immediately can print a
  * blank page. On screen it is display:none, so it costs nothing.
  */
-export function PrintDoctorSummaryButton({ report, user, draft }) {
+export function PrintDoctorSummaryButton({ report, user, draft, connections }) {
   const [request, setRequest] = useState(null);
 
   const handlePrint = () => {
     setRequest((current) => ({
       id: (current?.id ?? 0) + 1,
-      summary: buildDoctorSummary({ report, user, draft, today: todayIso() }),
+      summary: buildDoctorSummary({ report, user, draft, today: todayIso(), connections }),
     }));
   };
 

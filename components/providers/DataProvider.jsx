@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { buildReport } from "@/lib/analytics";
+import { findSymptomConnections } from "@/lib/analytics/connections";
 import { todayIso } from "@/lib/format";
 import { createLocalStore, useLocalStore } from "@/lib/local-store";
 import {
@@ -64,6 +65,17 @@ export function DataProvider({ children }) {
   const report = useMemo(
     () => buildReport({ symptomEntries, contextEntries, profile, statement: draft.statement }),
     [symptomEntries, contextEntries, profile, draft.statement],
+  );
+
+  /**
+   * The strongest relationships in the user's own records. Computed separately
+   * from the report because it is a different question — it compares groups of
+   * days and ranks them — and because it is consumed by the brief, the
+   * appointment-prep page and the printed sheet, all from one source.
+   */
+  const connections = useMemo(
+    () => findSymptomConnections({ symptomEntries, contextEntries }),
+    [symptomEntries, contextEntries],
   );
 
   const access = useMemo(
@@ -227,6 +239,7 @@ export function DataProvider({ children }) {
       contextEntries,
       report,
       access,
+      connections,
       lockedFeature,
       draft,
       setStatement,
@@ -253,6 +266,7 @@ export function DataProvider({ children }) {
       contextEntries,
       report,
       access,
+      connections,
       lockedFeature,
       draft,
       setStatement,

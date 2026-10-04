@@ -11,7 +11,7 @@ import { roundTo, formatDate } from "@/lib/format";
 const OPENING =
   "Imagine you've just sat down with your doctor. In your own words, tell me what's been happening.";
 
-export function PracticeChat({ report, questions }) {
+export function PracticeChat({ report, questions, connections }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -47,6 +47,7 @@ export function PracticeChat({ report, questions }) {
         body: JSON.stringify({
           report,
           questions,
+          connections,
           messages: nextMessages,
           turnIndex: nextMessages.length - 1,
         }),

@@ -13,7 +13,7 @@ export async function POST(request) {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { report, messages = [], turnIndex = 0, questions = [] } = body ?? {};
+  const { report, messages = [], turnIndex = 0, questions = [], connections = [] } = body ?? {};
 
   if (!isAiConfigured()) {
     return Response.json({ ...fallbackReply(report, turnIndex), source: "fallback" });
@@ -32,7 +32,7 @@ export async function POST(request) {
     const payload = await callGemini({
       system: PRACTICE_SYSTEM_PROMPT,
       prompt: [
-        buildPracticeContext(report, questions),
+        buildPracticeContext(report, questions, connections),
         "\nThe rehearsal is already underway. Here is the conversation so far:",
         transcript.map((entry) => `${entry.role === "model" ? "Clinician" : "Patient"}: ${entry.parts[0].text}`).join("\n"),
         "\nClinician:",
