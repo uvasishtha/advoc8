@@ -239,8 +239,8 @@ export function SetupSurvey() {
             Let&rsquo;s set up your profile
           </h1>
           <p className="hint mt-2 max-w-prose">
-            Answer a few questions to give Advoc8 some context. You can update anything later or
-            skip setup for now.
+            Answer a few questions to give Advoc8 some context. Nothing is held back while you
+            decide, and you can change any answer later.
           </p>
 
           <ul className="mt-6 grid gap-2.5 sm:grid-cols-3">
@@ -441,12 +441,12 @@ export function SetupSurvey() {
               Complete Setup
             </Button>
             <Button type="button" variant="ghost" onClick={skipOnboarding}>
-              Skip for Now
+              I&rsquo;ll do this later
             </Button>
           </div>
           <p className="hint max-w-prose">
-            Skipping keeps the Symptom Tracker open. Everything else stays locked until setup is
-            done, and this reminder comes back.
+            Come back to this whenever you like. The brief and the rehearsal are readable without
+            it &mdash; an unfinished profile just leaves them emptier.
           </p>
         </div>
       </form>

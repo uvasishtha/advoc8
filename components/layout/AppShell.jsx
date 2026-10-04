@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, House, Lock, NotebookPen, Settings, Sparkle, User } from "lucide-react";
+import { ClipboardList, House, NotebookPen, Settings, Sparkle, User } from "lucide-react";
 import { Logo } from "./Logo";
 import { cn } from "@/lib/utils";
-import { FEATURE_IDS } from "@/lib/onboarding";
+import { SETUP_STATUS } from "@/lib/onboarding";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
-import { SetupReminder } from "@/components/onboarding/SetupReminder";
-import { UnlockModal } from "@/components/onboarding/FeatureLock";
 
 // The four destinations, in the order the product is used. Practice is last
 // because it is the rehearsal, not a step in building the record — it reads the
@@ -16,24 +14,22 @@ import { UnlockModal } from "@/components/onboarding/FeatureLock";
 const NAV_ITEMS = [
   { href: "/", label: "Home", icon: House },
   { href: "/track", label: "Track", icon: NotebookPen },
-  { href: "/prepare", label: "Prepare", icon: ClipboardList, feature: FEATURE_IDS.BRIEF },
-  { href: "/practice", label: "Practice", icon: Sparkle, feature: FEATURE_IDS.PRACTICE },
+  { href: "/prepare", label: "Prepare", icon: ClipboardList },
+  { href: "/practice", label: "Practice", icon: Sparkle },
 ];
 
 export function AppShell({ children }) {
   const pathname = usePathname();
-  const { user, access, isReady, isReminderDismissed, dismissReminder } = useAdvoc8();
+  const { user } = useAdvoc8();
 
-  const isSetupRoute = pathname.startsWith("/setup");
-  const showReminder = isReady && access.needsSetup && !isReminderDismissed && !isSetupRoute;
+  const setupComplete = user.status === SETUP_STATUS.COMPLETED;
 
-  function navClass(active, locked) {
+  function navClass(active) {
     return cn(
       "flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors",
       active
         ? "bg-accent-soft text-accent-strong"
         : "text-muted hover:bg-secondary-bg hover:text-foreground",
-      locked && "opacity-70",
     );
   }
 
@@ -55,19 +51,16 @@ export function AppShell({ children }) {
           <ul className="space-y-1">
             {NAV_ITEMS.map((item) => {
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-              const locked = isReady && item.feature && !access.features[item.feature].unlocked;
 
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={navClass(active, locked)}
+                    className={navClass(active)}
                   >
                     <item.icon size={17} aria-hidden="true" />
                     {item.label}
-                    {locked ? <Lock size={13} className="ml-auto text-muted" aria-hidden="true" /> : null}
-                    {locked ? <span className="sr-only">(locked)</span> : null}
                   </Link>
                 </li>
               );
@@ -100,7 +93,7 @@ export function AppShell({ children }) {
                 {user.displayName}
               </span>
               <span className="block truncate text-xs text-muted">
-                {access.setupComplete ? "Profile set up" : "Setup not finished"}
+                {setupComplete ? "Profile set up" : "Setup not finished"}
               </span>
             </span>
           </Link>
@@ -119,7 +112,6 @@ export function AppShell({ children }) {
           <nav aria-label="Main" className="flex gap-1 overflow-x-auto px-3 pb-3">
             {NAV_ITEMS.map((item) => {
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-              const locked = isReady && item.feature && !access.features[item.feature].unlocked;
 
               return (
                 <Link
@@ -135,21 +127,16 @@ export function AppShell({ children }) {
                 >
                   <item.icon size={15} aria-hidden="true" />
                   {item.label}
-                  {locked ? <Lock size={12} aria-hidden="true" /> : null}
                 </Link>
               );
             })}
           </nav>
         </header>
 
-        {showReminder ? <SetupReminder onDismiss={dismissReminder} /> : null}
-
         <main id="main" className="min-w-0 flex-1">
           {children}
         </main>
       </div>
-
-      <UnlockModal />
     </div>
   );
 }

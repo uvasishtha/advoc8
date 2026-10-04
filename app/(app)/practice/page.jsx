@@ -3,8 +3,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
-import { FeatureLock } from "@/components/onboarding/FeatureLock";
-import { FEATURE_IDS } from "@/lib/onboarding";
 import { Disclaimer } from "@/components/ui/Notice";
 import { PracticeChat } from "@/components/practice/PracticeChat";
 import { ConnectionsToBringUp } from "@/components/brief/ConnectionsToBringUp";
@@ -12,14 +10,11 @@ import { ConnectionsToBringUp } from "@/components/brief/ConnectionsToBringUp";
 /**
  * Practice your conversation.
  *
- * Reached from Prepare rather than from the nav, because the rehearsal is only
- * worth doing once there is a brief to rehearse from. The back link is
- * deliberate: this is the last step of the prepare flow, not a place you live.
+ * The last step of the prepare flow, not a place you live, so the back link to
+ * the brief is deliberate.
  */
 export default function PracticePage() {
-  const { isReady, report, access, draft, connections } = useAdvoc8();
-
-  const isLocked = !access.features[FEATURE_IDS.PRACTICE].unlocked;
+  const { isReady, report, draft, connections } = useAdvoc8();
 
   return (
     <PageContainer className="max-w-4xl space-y-6">
@@ -37,20 +32,18 @@ export default function PracticePage() {
           Practice your conversation
         </h1>
         <p className="hint mt-1.5 max-w-prose">
-          {isLocked
-            ? access.features[FEATURE_IDS.PRACTICE].message
-            : "Advoc8 plays the clinician and works only from your brief. It asks you to put your experience into sentences, and it asks about the details your entries have not captured yet."}
+          Advoc8 plays the clinician and works only from your brief. It asks you to put your
+          experience into sentences, and it asks about the details your entries have not captured
+          yet.
         </p>
       </header>
 
-      <FeatureLock featureId={FEATURE_IDS.PRACTICE}>
-        {isReady ? (
-          <div className="space-y-6">
-            <ConnectionsToBringUp connections={connections} />
-            <PracticeChat report={report} questions={draft.questions} connections={connections} />
-          </div>
-        ) : null}
-      </FeatureLock>
+      {isReady ? (
+        <div className="space-y-6">
+          <ConnectionsToBringUp connections={connections} />
+          <PracticeChat report={report} questions={draft.questions} connections={connections} />
+        </div>
+      ) : null}
 
       <Disclaimer>
         This is a communication aid, not a consultation. Advoc8 will not name a condition, suggest a

@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarDays, FileText, Lock, NotebookPen, Sparkle } from "lucide-react";
+import { ArrowRight, CalendarDays, FileText, NotebookPen, Sparkle } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
-import { FEATURE_IDS } from "@/lib/onboarding";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Stat, StatGrid } from "@/components/ui/Section";
@@ -29,18 +28,13 @@ import { formatDate, formatDuration, roundTo, todayIso } from "@/lib/format";
  * brief, in sentences, with its caveats attached.
  */
 export default function HomePage() {
-  const { isReady, user, report, symptomEntries, access, resetToSampleData } = useAdvoc8();
+  const { isReady, user, report, symptomEntries, resetToSampleData } = useAdvoc8();
 
   if (!isReady) return null;
 
   const today = todayIso();
   const loggedToday = symptomEntries.filter((entry) => entry.date === today);
   const lead = report.symptoms[0] ?? null;
-
-  const briefAccess = access.features[FEATURE_IDS.BRIEF];
-  const practiceAccess = access.features[FEATURE_IDS.PRACTICE];
-  const briefLocked = !briefAccess.unlocked;
-  const practiceLocked = !practiceAccess.unlocked;
 
   // Same entries, same rules as the track page. Reads nothing new.
   const streak = buildStreak(symptomEntries, today);
@@ -96,34 +90,22 @@ export default function HomePage() {
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-sm font-medium text-accent-strong">
-              {briefLocked ? (
-                <Lock size={16} aria-hidden="true" />
-              ) : (
-                <FileText size={16} aria-hidden="true" />
-              )}
+              <FileText size={16} aria-hidden="true" />
               Your Evidence Brief
             </p>
             <p className="mt-1 font-serif text-2xl font-semibold text-foreground">
-              {briefLocked ? "Not generated yet" : report.range.label}
+              {report.range.label}
             </p>
             <p className="hint mt-1">
-              {briefLocked
-                ? briefAccess.message
-                : `${report.range.entryCount} entries on ${report.range.daysLogged} of ${report.range.totalDays} days`}
+              {report.range.entryCount} entries on {report.range.daysLogged} of{" "}
+              {report.range.totalDays} days
             </p>
           </div>
 
-          {briefLocked ? (
-            <Button href={briefAccess.action.href} variant="outline" className="self-start">
-              <Lock size={16} aria-hidden="true" />
-              {briefAccess.action.label}
-            </Button>
-          ) : (
-            <Button href="/prepare" className="self-start">
-              View Evidence Brief
-              <ArrowRight size={16} aria-hidden="true" />
-            </Button>
-          )}
+          <Button href="/prepare" className="self-start">
+            View Evidence Brief
+            <ArrowRight size={16} aria-hidden="true" />
+          </Button>
         </div>
 
         <StatGrid columns={3} className="mt-6">
@@ -179,28 +161,16 @@ export default function HomePage() {
 
         <Card className="flex flex-col justify-between gap-5 p-5">
           <div>
-            <p className="eyebrow flex items-center gap-1.5">
-              Practice
-              {practiceLocked ? <Lock size={12} aria-hidden="true" /> : null}
-            </p>
+            <p className="eyebrow">Practice</p>
             <h2 className="mt-1 font-serif text-2xl font-semibold">Rehearse before you go in</h2>
             <p className="hint mt-1">
-              {practiceLocked
-                ? practiceAccess.message
-                : "Practise explaining your experience with an assistant that only uses your own records."}
+              Practise explaining your experience with an assistant that only uses your own records.
             </p>
           </div>
-          {practiceLocked ? (
-            <Button href={practiceAccess.action.href} variant="outline" className="self-start">
-              <Lock size={16} aria-hidden="true" />
-              {practiceAccess.action.label}
-            </Button>
-          ) : (
-            <Button href="/practice" variant="outline" className="self-start">
-              <Sparkle size={16} aria-hidden="true" />
-              Practice with Advoc8
-            </Button>
-          )}
+          <Button href="/practice" variant="outline" className="self-start">
+            <Sparkle size={16} aria-hidden="true" />
+            Practice with Advoc8
+          </Button>
         </Card>
       </div>
 

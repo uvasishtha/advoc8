@@ -3,8 +3,6 @@
 import { ArrowRight, FileText, MessagesSquare, BarChart2 } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
-import { FeatureLock } from "@/components/onboarding/FeatureLock";
-import { FEATURE_IDS } from "@/lib/onboarding";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { EmptyState } from "@/components/ui/Notice";
@@ -31,22 +29,9 @@ import { cn } from "@/lib/utils";
  * arguing for something you lived and something the app inferred.
  */
 export default function PreparePage() {
-  const {
-    isReady,
-    report,
-    user,
-    access,
-    draft,
-    connections,
-    setStatement,
-    setQuestions,
-  } = useAdvoc8();
+  const { isReady, report, user, draft, connections, setStatement, setQuestions } = useAdvoc8();
 
   if (!isReady) return null;
-
-  const briefAccess = access.features[FEATURE_IDS.BRIEF];
-  const isLocked = !briefAccess.unlocked;
-  const isPracticeLocked = !access.features[FEATURE_IDS.PRACTICE].unlocked;
 
   // Declared once and rendered three times — as the scan nav, as the sections
   // themselves, and as the practice prompt — so the page cannot drift out of
@@ -107,9 +92,8 @@ export default function PreparePage() {
               Prepare for Your Appointment
             </h1>
             <p className="mt-2.5 max-w-prose text-lg leading-relaxed text-muted">
-              {isLocked
-                ? briefAccess.message
-                : "Your record and your own words, in the order you will want them. Read it, edit anything that is not quite right, and take it in."}
+              Your record and your own words, in the order you will want them. Read it, edit
+              anything that is not quite right, and take it in.
             </p>
           </div>
 
@@ -140,54 +124,52 @@ export default function PreparePage() {
         ) : null}
       </header>
 
-<FeatureLock featureId={FEATURE_IDS.BRIEF}>
-        {report.isEmpty ? (
-          <EmptyState
-            icon={FileText}
-            title="Nothing to review yet"
-            description="Every section of this brief is built from entries you log. Log a few and it fills in on its own."
-            action={<Button href="/track">Track a symptom</Button>}
-          />
-        ) : (
-          <div className="space-y-10">
-            <ProvenanceLegend className="mb-2" />
+    {report.isEmpty ? (
+      <EmptyState
+        icon={FileText}
+        title="Nothing to review yet"
+        description="Every section of this brief is built from entries you log. Log a few and it fills in on its own."
+        action={<Button href="/track">Track a symptom</Button>}
+      />
+    ) : (
+      <div className="space-y-10">
+        <ProvenanceLegend className="mb-2" />
 
-            <nav aria-label="Brief sections" className="mb-6">
-              <ul className="flex flex-wrap gap-2">
-                {sections.map((section) => (
-                  <li key={section.number}>
-                    <a
-                      href={`#section-${section.number}`}
-                      className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent-muted hover:bg-accent-soft hover:text-accent-strong"
-                    >
-                      <span aria-hidden="true" className="font-serif text-xs font-semibold">
-                        {section.number}
-                      </span>
-                      {section.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-
-            <div className="space-y-10">
-              {sections.map((section) => (
-                <Section
-                  key={section.number}
-                  number={section.number}
-                  title={section.title}
-                  description={section.description}
-                  source={section.source}
+        <nav aria-label="Brief sections" className="mb-6">
+          <ul className="flex flex-wrap gap-2">
+            {sections.map((section) => (
+              <li key={section.number}>
+                <a
+                  href={`#section-${section.number}`}
+                  className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent-muted hover:bg-accent-soft hover:text-accent-strong"
                 >
-                  {section.body}
-                </Section>
-              ))}
-            </div>
+                  <span aria-hidden="true" className="font-serif text-xs font-semibold">
+                    {section.number}
+                  </span>
+                  {section.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-            <PracticeCallout locked={isPracticeLocked} />
-          </div>
-        )}
-      </FeatureLock>
+        <div className="space-y-10">
+          {sections.map((section) => (
+            <Section
+              key={section.number}
+              number={section.number}
+              title={section.title}
+              description={section.description}
+              source={section.source}
+            >
+              {section.body}
+            </Section>
+          ))}
+        </div>
+
+        <PracticeCallout />
+      </div>
+    )}
     </PageContainer>
   );
 }
@@ -224,7 +206,7 @@ function BriefFacts({ report, className }) {
  * Practice lives inside the prepare flow rather than beside it, because the
  * rehearsal is only useful once there is a brief to rehearse from.
  */
-function PracticeCallout({ locked }) {
+function PracticeCallout() {
   return (
     <section
       aria-labelledby="practice-heading"
@@ -244,16 +226,10 @@ function PracticeCallout({ locked }) {
             details you have not written down yet.
           </p>
           <div className="mt-4">
-            {locked ? (
-              <Button variant="outline" disabled className="w-full sm:w-auto">
-                Log two entries to unlock practice
-              </Button>
-            ) : (
-              <Button href="/practice" className="w-full sm:w-auto">
-                Practice your conversation
-                <ArrowRight size={16} aria-hidden="true" />
-              </Button>
-            )}
+            <Button href="/practice" className="w-full sm:w-auto">
+              Practice your conversation
+              <ArrowRight size={16} aria-hidden="true" />
+            </Button>
           </div>
         </div>
       </div>

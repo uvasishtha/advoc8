@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import { buildReport } from "@/lib/analytics";
 import { findSymptomConnections } from "@/lib/analytics/connections";
 import { todayIso } from "@/lib/format";
@@ -9,7 +9,6 @@ import {
   EMPTY_ONBOARDING,
   SAMPLE_ONBOARDING,
   SETUP_STATUS,
-  buildAccess,
   buildProfile,
   normaliseSurvey,
 } from "@/lib/onboarding";
@@ -34,7 +33,7 @@ const DataContext = createContext(null);
  * records: the setup answers, the tracking rows, and the words the user wrote
  * for themselves.
  *
- *   onboarding answers -> profile -> access (what is unlocked) + brief header
+ *   onboarding answers -> profile -> brief header
  *   tracking rows      -> report  -> what you've experienced, noticed, missing
  *   the brief draft    -> statement, goal and questions, which are editable
  *
@@ -51,11 +50,6 @@ export function DataProvider({ children }) {
   const [entries, setEntries, entriesReady] = useLocalStore(entriesStore);
   const [onboarding, setOnboarding, onboardingReady] = useLocalStore(onboardingStore);
   const [draft, setDraft, draftReady] = useLocalStore(draftStore);
-
-  // Transient UI state: which lock was clicked, and whether the setup reminder
-  // was dismissed for this visit. Neither is worth persisting.
-  const [lockedFeatureId, setLockedFeatureId] = useState(null);
-  const [isReminderDismissed, setIsReminderDismissed] = useState(false);
 
   const isReady = entriesReady && onboardingReady && draftReady;
   const { symptomEntries, contextEntries } = entries;
@@ -78,11 +72,6 @@ export function DataProvider({ children }) {
     [symptomEntries, contextEntries],
   );
 
-  const access = useMemo(
-    () => buildAccess({ onboarding, symptomEntries }),
-    [onboarding, symptomEntries],
-  );
-
   const setStatement = useCallback(
     (statement) => setDraft((current) => ({ ...current, statement })),
     [setDraft],
@@ -92,8 +81,6 @@ export function DataProvider({ children }) {
     (questions) => setDraft((current) => ({ ...current, questions })),
     [setDraft],
   );
-
-  const lockedFeature = lockedFeatureId ? access.features[lockedFeatureId] ?? null : null;
 
   const addSymptomEntry = useCallback(
     (entry) => {
@@ -176,11 +163,9 @@ export function DataProvider({ children }) {
    * `unlock: true` — the finished app: sample profile included, so every
    * feature is open and the brief is immediately readable.
    *
-   * `unlock: false` — the same tracking rows behind a first-run profile: the
-   * survey still asks its questions, and until they are answered the
-   * personalised features stay locked. Resets the profile rather than trusting
-   * whatever state this browser was already in, so the button always lands the
-   * same way.
+   * `unlock: false` — the same tracking rows behind a blank profile: the survey
+   * still asks its questions. Resets the profile rather than trusting whatever
+   * state this browser was already in, so the button always lands the same way.
    */
   const resetToSampleData = useCallback(
     ({ unlock = true } = {}) => {
@@ -209,25 +194,7 @@ export function DataProvider({ children }) {
     setEntries(EMPTY_ENTRIES);
     setOnboarding({ ...EMPTY_ONBOARDING });
     resetBriefDraft();
-    setIsReminderDismissed(false);
   }, [setEntries, setOnboarding]);
-
-  /**
-   * Called by anything that wants to open a gated feature. Returns false when
-   * the feature is locked, in which case the caller shows the explanation modal
-   * instead of navigating. A locked button is never a dead button.
-   */
-  const requestFeature = useCallback(
-    (featureId) => {
-      const feature = access.features[featureId];
-      if (!feature || feature.unlocked) return true;
-      setLockedFeatureId(featureId);
-      return false;
-    },
-    [access],
-  );
-
-  const closeFeaturePrompt = useCallback(() => setLockedFeatureId(null), []);
 
   const value = useMemo(
     () => ({
@@ -238,9 +205,7 @@ export function DataProvider({ children }) {
       symptomEntries,
       contextEntries,
       report,
-      access,
       connections,
-      lockedFeature,
       draft,
       setStatement,
       setQuestions,
@@ -252,10 +217,6 @@ export function DataProvider({ children }) {
       resetToSampleData,
       clearAllEntries,
       startFresh,
-      requestFeature,
-      closeFeaturePrompt,
-      dismissReminder: () => setIsReminderDismissed(true),
-      isReminderDismissed,
       today: todayIso(),
     }),
     [
@@ -265,9 +226,7 @@ export function DataProvider({ children }) {
       symptomEntries,
       contextEntries,
       report,
-      access,
       connections,
-      lockedFeature,
       draft,
       setStatement,
       setQuestions,
@@ -279,9 +238,6 @@ export function DataProvider({ children }) {
       resetToSampleData,
       clearAllEntries,
       startFresh,
-      requestFeature,
-      closeFeaturePrompt,
-      isReminderDismissed,
     ],
   );
 
