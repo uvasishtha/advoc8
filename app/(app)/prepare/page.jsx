@@ -90,7 +90,7 @@ export default function PreparePage() {
   ];
 
   return (
-    <PageContainer className="max-w-3xl space-y-14">
+    <PageContainer className="max-w-4xl space-y-14">
       <header className="space-y-6">
         <div>
           <p className="eyebrow">Your appointment</p>

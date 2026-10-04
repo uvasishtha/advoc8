@@ -21,7 +21,7 @@ export default function PracticePage() {
   const isLocked = !access.features[FEATURE_IDS.PRACTICE].unlocked;
 
   return (
-    <PageContainer className="max-w-3xl space-y-6">
+    <PageContainer className="max-w-4xl space-y-6">
       <a
         href="/prepare"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground"

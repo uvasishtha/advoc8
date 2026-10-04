@@ -56,10 +56,10 @@ export default function HomePage() {
 
   if (report.isEmpty) {
     return (
-      <PageContainer className="max-w-3xl">
+      <PageContainer className="max-w-5xl">
         <div className="mb-8">
           <p className="eyebrow">Dashboard</p>
-          <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">{user.greeting}</h1>
+          <h1 className="mt-1 font-serif text-4xl font-semibold sm:text-5xl">{user.greeting}</h1>
           <p className="hint mt-1">
             Nothing logged yet. Your Evidence Brief builds itself as you track.
           </p>
@@ -83,10 +83,10 @@ export default function HomePage() {
   }
 
   return (
-    <PageContainer className="max-w-3xl space-y-8">
+    <PageContainer className="max-w-5xl space-y-8">
       <header>
         <p className="eyebrow">Dashboard</p>
-        <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">{user.greeting}</h1>
+        <h1 className="mt-1 font-serif text-4xl font-semibold sm:text-5xl">{user.greeting}</h1>
         <p className="hint mt-1">{report.coverage}</p>
       </header>
 
@@ -150,7 +150,7 @@ export default function HomePage() {
         <Card className="flex flex-col justify-between gap-5 p-5">
           <div>
             <p className="eyebrow">Today&rsquo;s check-in</p>
-            <h2 className="mt-1 font-serif text-xl font-semibold">
+            <h2 className="mt-1 font-serif text-2xl font-semibold">
               {loggedToday.length > 0 ? "You logged something today" : "How are you feeling today?"}
             </h2>
             <p className="hint mt-1">
@@ -183,7 +183,7 @@ export default function HomePage() {
               Practice
               {practiceLocked ? <Lock size={12} aria-hidden="true" /> : null}
             </p>
-            <h2 className="mt-1 font-serif text-xl font-semibold">Rehearse before you go in</h2>
+            <h2 className="mt-1 font-serif text-2xl font-semibold">Rehearse before you go in</h2>
             <p className="hint mt-1">
               {practiceLocked
                 ? practiceAccess.message
@@ -208,7 +208,7 @@ export default function HomePage() {
         <section aria-labelledby="recent-trend">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 id="recent-trend" className="font-serif text-xl font-semibold">
+              <h2 id="recent-trend" className="font-serif text-2xl font-semibold">
                 Severity across the period
               </h2>
               <p className="hint">Highest severity recorded on each day you logged a symptom.</p>
@@ -226,7 +226,7 @@ export default function HomePage() {
 
       <section aria-labelledby="recent-entries">
         <div className="mb-4 flex items-end justify-between gap-3">
-          <h2 id="recent-entries" className="font-serif text-xl font-semibold">
+          <h2 id="recent-entries" className="font-serif text-2xl font-semibold">
             Most recent entries
           </h2>
           <Link href="/track" className="text-sm font-medium text-accent-strong hover:underline">
@@ -244,7 +244,7 @@ export default function HomePage() {
                       <p className="font-medium text-foreground">{entry.symptom}</p>
                       <p className="hint">{formatDate(entry.date)}</p>
                     </div>
-                    <span className="font-serif text-xl font-semibold tabular-nums text-accent-strong">
+                    <span className="font-serif text-2xl font-semibold tabular-nums text-accent-strong">
                       {entry.severity}
                       <span className="text-xs font-sans font-normal text-muted"> / 10</span>
                     </span>

@@ -58,7 +58,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <PageContainer className="max-w-2xl space-y-6">
+    <PageContainer className="max-w-3xl space-y-6">
       <header>
         <p className="eyebrow">Settings</p>
         <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">Settings</h1>

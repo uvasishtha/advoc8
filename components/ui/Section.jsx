@@ -61,7 +61,7 @@ export function Stat({ value, label, hint, unit, tone = "default", className }) 
         className,
       )}
     >
-      <p className="font-serif text-3xl font-semibold leading-none text-foreground">
+      <p className="font-serif text-4xl font-semibold leading-none text-foreground">
         {value}
         {unit ? <span className="ml-1 font-sans text-sm font-medium text-muted">{unit}</span> : null}
       </p>

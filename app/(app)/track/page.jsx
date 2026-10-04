@@ -69,7 +69,7 @@ export default function TrackPage() {
   }
 
   return (
-    <PageContainer className="max-w-3xl space-y-8">
+    <PageContainer className="max-w-4xl space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">Track</p>
