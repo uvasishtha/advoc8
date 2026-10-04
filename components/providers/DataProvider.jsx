@@ -15,8 +15,6 @@ import {
 import {
   MOCK_CONTEXT_ENTRIES,
   MOCK_SYMPTOM_ENTRIES,
-  SAMPLE_APPOINTMENT_GOAL,
-  SAMPLE_GOAL_IDS,
 } from "@/lib/seed/maya";
 import { draftStore, resetBriefDraft, seedBriefDraft } from "@/lib/brief-draft";
 
@@ -78,25 +76,8 @@ export function DataProvider({ children }) {
     [setDraft],
   );
 
-  const setAppointmentGoal = useCallback(
-    (appointmentGoal) => setDraft((current) => ({ ...current, appointmentGoal })),
-    [setDraft],
-  );
-
   const setQuestions = useCallback(
     (questions) => setDraft((current) => ({ ...current, questions })),
-    [setDraft],
-  );
-
-  /** Ticking a goal is a toggle, so the whole list is written each time. */
-  const toggleGoal = useCallback(
-    (goalId) =>
-      setDraft((current) => ({
-        ...current,
-        goalIds: current.goalIds.includes(goalId)
-          ? current.goalIds.filter((id) => id !== goalId)
-          : [...current.goalIds, goalId],
-      })),
     [setDraft],
   );
 
@@ -195,11 +176,7 @@ export function DataProvider({ children }) {
 
       if (unlock) {
         setOnboarding({ ...SAMPLE_ONBOARDING });
-        seedBriefDraft({
-          statement: SAMPLE_ONBOARDING.doctorNote,
-          appointmentGoal: SAMPLE_APPOINTMENT_GOAL,
-          goalIds: SAMPLE_GOAL_IDS,
-        });
+        seedBriefDraft({ statement: SAMPLE_ONBOARDING.doctorNote });
         return;
       }
 
@@ -253,9 +230,7 @@ export function DataProvider({ children }) {
       lockedFeature,
       draft,
       setStatement,
-      setAppointmentGoal,
       setQuestions,
-      toggleGoal,
       addSymptomEntry,
       removeSymptomEntry,
       upsertContextEntry,
@@ -281,9 +256,7 @@ export function DataProvider({ children }) {
       lockedFeature,
       draft,
       setStatement,
-      setAppointmentGoal,
       setQuestions,
-      toggleGoal,
       addSymptomEntry,
       removeSymptomEntry,
       upsertContextEntry,
