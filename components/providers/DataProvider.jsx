@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { buildReport } from "@/lib/analytics";
 import { todayIso } from "@/lib/format";
 import { createLocalStore, useLocalStore } from "@/lib/local-store";
@@ -58,6 +58,23 @@ export function DataProvider({ children }) {
 
   const isReady = entriesReady && onboardingReady && draftReady;
   const { symptomEntries, contextEntries } = entries;
+
+  // Load sample data when ?sample=true is in the URL (for the example brief link)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("sample") === "true") {
+      // Only load sample if the user has no data of their own
+      const hasOwnData = symptomEntries.length > 0 || contextEntries.length > 0 || onboarding.status === SETUP_STATUS.COMPLETED;
+      if (!hasOwnData) {
+        setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
+        setOnboarding({ ...SAMPLE_ONBOARDING });
+        seedBriefDraft({ statement: SAMPLE_ONBOARDING.doctorNote });
+        // Clean up URL so refresh doesn't re-trigger
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, [entriesReady, onboardingReady, draftReady, symptomEntries, contextEntries, onboarding, setEntries, setOnboarding]);
 
   const profile = useMemo(() => buildProfile(onboarding), [onboarding]);
 
