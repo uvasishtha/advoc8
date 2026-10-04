@@ -10,8 +10,10 @@ import { SelectField, TextArea, TextField } from "@/components/ui/Field";
 import { Disclaimer } from "@/components/ui/Notice";
 import {
   CYCLE_LENGTH_OPTIONS,
+  CYCLE_RELEVANCE_OPTIONS,
   DAY_TO_DAY_OPTIONS,
   FIRST_NOTICED_OPTIONS,
+  POSSIBLE_FACTOR_OPTIONS,
   SURVEY_SYMPTOM_OPTIONS,
   normaliseSurvey,
   validateSurvey,
