@@ -114,7 +114,7 @@ export function DataProvider({ children }) {
     }
 
     initializeUser();
-  }, []);
+  }, [setEntries]);
 
   const isReady =
     entriesReady && onboardingReady && draftReady && supabaseReady;
