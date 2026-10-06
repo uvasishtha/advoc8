@@ -11,7 +11,6 @@ import {
 import { buildReport } from "@/lib/analytics";
 import { findSymptomConnections } from "@/lib/analytics/connections";
 import { todayIso } from "@/lib/format";
-import { createLocalStore, useLocalStore } from "@/lib/local-store";
 import { supabase } from "@/lib/supabase";
 import {
   EMPTY_ONBOARDING,
@@ -24,13 +23,9 @@ import {
 import {
   MOCK_CONTEXT_ENTRIES,
   MOCK_SYMPTOM_ENTRIES,
+  MOCK_QUESTIONS,
 } from "@/lib/seed/maya";
-import { draftStore, resetBriefDraft, seedBriefDraft } from "@/lib/brief-draft";
-
-const EMPTY_ENTRIES = Object.freeze({ symptomEntries: [], contextEntries: [] });
-
-const entriesStore = createLocalStore("advoc8.entries.v1", EMPTY_ENTRIES);
-const onboardingStore = createLocalStore("advoc8.onboarding.v1", EMPTY_ONBOARDING);
+import { resetBriefDraft, seedBriefDraft, useDraftStore } from "@/lib/brief-draft";
 
 const DataContext = createContext(null);
 
@@ -50,14 +45,14 @@ const DataContext = createContext(null);
  * The statement is passed into the report because a brief that already says what
  * the user wants does not need to flag it as missing.
  *
- * Persistence is localStorage for the prototype. When Supabase is wired in,
- * only the store definitions change: point them at route handlers and every
- * downstream component keeps working unchanged.
+ * Supabase is the single persistence layer. All writes go to Supabase; React
+ * state is the in-memory view consumed by the UI and analytics.
  */
 export function DataProvider({ children }) {
-  const [entries, setEntries, entriesReady] = useLocalStore(entriesStore);
-  const [onboarding, setOnboarding, onboardingReady] = useLocalStore(onboardingStore);
-  const [draft, setDraft, draftReady] = useLocalStore(draftStore);
+  const [symptomEntries, setSymptomEntries] = useState([]);
+  const [contextEntries, setContextEntries] = useState([]);
+  const [onboarding, setOnboarding] = useState(EMPTY_ONBOARDING);
+  const [draft, setDraft] = useDraftStore();
 
   const [supabaseUser, setSupabaseUser] = useState(null);
   const [supabaseReady, setSupabaseReady] = useState(false);
@@ -98,41 +93,87 @@ export function DataProvider({ children }) {
         console.error("Failed to upsert user:", usersError);
       }
 
-      const { data: rows, error: loadError } = await supabase
-        .from("symptom_entries")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false });
+      const [symptomsRes, contextRes, profileRes, briefRes] = await Promise.all([
+        supabase
+          .from("symptom_entries")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("date", { ascending: false }),
+        supabase
+          .from("context_entries")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("date", { ascending: false }),
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("evidence_briefs")
+          .select("*, questions(*)")
+          .eq("user_id", user.id)
+          .order("generated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
-      if (loadError) {
-        console.error("Failed to load symptoms:", loadError);
-      } else if (rows?.length) {
-        setEntries((current) => ({ ...current, symptomEntries: rows }));
+      if (symptomsRes.error) {
+        console.error("Failed to load symptoms:", symptomsRes.error);
+      } else if (symptomsRes.data?.length) {
+        setSymptomEntries(symptomsRes.data);
+      }
+
+      if (contextRes.error) {
+        console.error("Failed to load context:", contextRes.error);
+      } else if (contextRes.data?.length) {
+        setContextEntries(contextRes.data);
+      }
+
+      if (profileRes.error) {
+        console.error("Failed to load profile:", profileRes.error);
+      } else if (profileRes.data) {
+        setOnboarding((current) => ({
+          ...current,
+          status: SETUP_STATUS.COMPLETED,
+          firstName: profileRes.data.display_name ?? current.firstName,
+          concern: profileRes.data.main_concern ?? current.concern,
+          completedAt: profileRes.data.updated_at ?? new Date().toISOString(),
+          skippedAt: null,
+          source: "local",
+        }));
+      }
+
+      if (briefRes.error) {
+        console.error("Failed to load brief:", briefRes.error);
+      } else if (briefRes.data) {
+        setDraft({
+          statement: briefRes.data.statement ?? "",
+          questions: (briefRes.data.questions ?? []).map((q) => ({
+            id: q.id,
+            text: q.text,
+            section: q.section,
+            source: q.source,
+            position: q.position,
+          })),
+        });
       }
 
       setSupabaseReady(true);
     }
 
     initializeUser();
-  }, [setEntries]);
+  }, [setDraft]);
 
-  const isReady =
-    entriesReady && onboardingReady && draftReady && supabaseReady;
-  const { symptomEntries, contextEntries } = entries;
+  const isReady = supabaseReady;
 
-  const profile = useMemo(() => buildProfile(onboarding), [onboarding]);
+  const profile = useMemo(() => buildProfile(onboarding, supabaseUser?.id), [onboarding, supabaseUser]);
 
   const report = useMemo(
     () => buildReport({ symptomEntries, contextEntries, profile, statement: draft.statement }),
     [symptomEntries, contextEntries, profile, draft.statement],
   );
 
-  /**
-   * The strongest relationships in the user's own records. Computed separately
-   * from the report because it is a different question — it compares groups of
-   * days and ranks them — and because it is consumed by the brief, the
-   * appointment-prep page and the printed sheet, all from one source.
-   */
   const connections = useMemo(
     () => findSymptomConnections({ symptomEntries, contextEntries }),
     [symptomEntries, contextEntries],
@@ -143,22 +184,26 @@ export function DataProvider({ children }) {
     [onboarding, symptomEntries],
   );
 
-  const setStatement = useCallback(
-    (statement) => setDraft((current) => ({ ...current, statement })),
-    [setDraft],
-  );
-
-  const setQuestions = useCallback(
-    (questions) => setDraft((current) => ({ ...current, questions })),
-    [setDraft],
-  );
-
   const lockedFeature = lockedFeatureId ? access.features[lockedFeatureId] ?? null : null;
 
   const addSymptomEntry = useCallback(
     async (entry) => {
-      if (supabaseUser) {
-        const row = {
+      const tempRow = {
+        user_id: supabaseUser.id,
+        symptom: entry.symptom,
+        date: entry.date,
+        severity: entry.severity ?? null,
+        duration_minutes: entry.duration_minutes ?? null,
+        notes: entry.notes ?? null,
+        impact: entry.impact ?? null,
+        id: `sym-${entry.date}-${entry.symptom}-${Date.now()}`,
+      };
+
+      setSymptomEntries((current) => [tempRow, ...current]);
+
+      const { data, error } = await supabase
+        .from("symptom_entries")
+        .insert({
           user_id: supabaseUser.id,
           symptom: entry.symptom,
           date: entry.date,
@@ -166,84 +211,118 @@ export function DataProvider({ children }) {
           duration_minutes: entry.duration_minutes ?? null,
           notes: entry.notes ?? null,
           impact: entry.impact ?? null,
-        };
+        })
+        .select()
+        .single();
 
-        const { data, error } = await supabase
-          .from("symptom_entries")
-          .insert(row)
-          .select()
-          .single();
-
-        if (error) {
-          console.error("Failed to save symptom:", error);
-        } else if (data) {
-          setEntries((current) => ({
-            ...current,
-            symptomEntries: [data, ...current.symptomEntries],
-          }));
-          return;
-        }
+      if (error) {
+        console.error("Failed to save symptom:", error);
+        return;
       }
 
-      const row = {
-        user_id: supabaseUser?.id ?? "user-local",
-        ...entry,
-        id: entry.id ?? `sym-${entry.date}-${entry.symptom}-${Date.now()}`,
-      };
-
-      setEntries((current) => ({
-        ...current,
-        symptomEntries: [row, ...current.symptomEntries],
-      }));
+      setSymptomEntries((current) =>
+        current.map((row) => (row.id === tempRow.id ? data : row)),
+      );
     },
-    [supabaseUser, setEntries],
+    [supabaseUser],
   );
 
   const removeSymptomEntry = useCallback(
-    (id) => {
-      setEntries((current) => ({
-        ...current,
-        symptomEntries: current.symptomEntries.filter((entry) => entry.id !== id),
-      }));
+    async (id) => {
+      const entry = symptomEntries.find((item) => item.id === id);
 
-      if (supabaseUser) {
-        const entry = symptomEntries.find((item) => item.id === id);
+      setSymptomEntries((current) =>
+        current.filter((entry) => entry.id !== id),
+      );
 
-        if (entry?.user_id === supabaseUser.id) {
-          void supabase
-            .from("symptom_entries")
-            .delete()
-            .eq("id", id)
-            .then(({ error }) => {
-              if (error) console.error("Failed to delete symptom:", error);
-            });
-        }
+      if (entry?.user_id === supabaseUser.id) {
+        const { error } = await supabase
+          .from("symptom_entries")
+          .delete()
+          .eq("id", id);
+
+        if (error) console.error("Failed to delete symptom:", error);
       }
     },
-    [supabaseUser, symptomEntries, setEntries],
+    [supabaseUser, symptomEntries],
   );
 
   const upsertContextEntry = useCallback(
-    (entry) => {
-      setEntries((current) => {
-        const index = current.contextEntries.findIndex((item) => item.date === entry.date);
+    async (entry) => {
+      const row = {
+        user_id: supabaseUser.id,
+        date: entry.date,
+        sleep_hours: entry.sleep_hours ?? null,
+        stress_level: entry.stress_level ?? null,
+        cycle_day: entry.cycle_day ?? null,
+        cycle_phase: entry.cycle_phase ?? null,
+      };
 
+      const { data, error } = await supabase
+        .from("context_entries")
+        .upsert(row, { onConflict: "user_id,date" })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Failed to save context:", error);
+        return;
+      }
+
+      setContextEntries((current) => {
+        const index = current.findIndex((item) => item.date === entry.date);
         if (index === -1) {
-          return {
-            ...current,
-            contextEntries: [
-              ...current.contextEntries,
-            { ...entry, id: `ctx-${entry.date}`, user_id: supabaseUser?.id },
-            ].sort((a, b) => a.date.localeCompare(b.date)),
-           };
-         }
+          return [data, ...current].sort((a, b) => a.date.localeCompare(b.date));
+        }
+        const next = [...current];
+        next[index] = data;
+        return next;
+      });
+    },
+    [supabaseUser],
+  );
 
-         const next = [...current.contextEntries];
-         next[index] = { ...next[index], ...entry };
-         return { ...current, contextEntries: next };
-       });
-     },
-     [setEntries, supabaseUser],
+  const saveEvidenceBrief = useCallback(
+    async (reportSnapshot, statement, questions) => {
+      if (!supabaseUser || !reportSnapshot) return;
+
+      const { data: brief, error: briefError } = await supabase
+        .from("evidence_briefs")
+        .insert({
+          user_id: supabaseUser.id,
+          period_start: reportSnapshot.range?.start,
+          period_end: reportSnapshot.range?.end,
+          report_snapshot: reportSnapshot,
+          statement,
+        })
+        .select()
+        .single();
+
+      if (briefError) {
+        console.error("Failed to save brief:", briefError);
+        return;
+      }
+
+      if (questions?.length && brief) {
+        const questionRows = questions.map((q, i) => ({
+          brief_id: brief.id,
+          user_id: supabaseUser.id,
+          text: q.text,
+          section: q.section,
+          source: q.source ?? "manual",
+          position: q.position ?? i,
+        }));
+
+        const { error: questionsError } = await supabase
+          .from("questions")
+          .insert(questionRows);
+
+        if (questionsError) {
+          console.error("Failed to save questions:", questionsError);
+        }
+      }
+    },
+    [supabaseUser],
   );
 
   /** Finishing the survey also writes the first version of the brief's own words. */
@@ -261,26 +340,37 @@ export function DataProvider({ children }) {
         source: "local",
       }));
 
-      seedBriefDraft({ statement: clean.doctorNote });
+      setDraft((current) => ({
+        ...current,
+        statement: clean.doctorNote || current.statement,
+      }));
+
+      if (supabaseUser) {
+        const profile = {
+          user_id: supabaseUser.id,
+          display_name: clean.firstName,
+          main_concern: clean.concern,
+          updated_at: new Date().toISOString(),
+        };
+
+        void supabase
+          .from("profiles")
+          .upsert(profile)
+          .then(({ error }) => {
+            if (error) console.error("Failed to save profile:", error);
+          });
+      }
     },
-    [setOnboarding],
+    [supabaseUser, setDraft],
   );
 
   /** Maya's sample month: the tracking rows, and the words her brief is built on. */
   const loadSampleRecords = useCallback(() => {
-    setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
+    setSymptomEntries(MOCK_SYMPTOM_ENTRIES);
+    setContextEntries(MOCK_CONTEXT_ENTRIES);
     seedBriefDraft({ statement: SAMPLE_ONBOARDING.doctorNote });
-  }, [setEntries]);
+  }, []);
 
-  /**
-   * Skipping is not an empty profile. It hands over the sample month in full, so
-   * the app has something to show on the other side of the survey instead of an
-   * empty dashboard and two locked features.
-   *
-   * The status stays "skipped" rather than "completed": nothing was answered, so
-   * the reminder that setup is unfinished keeps its honesty, and Settings still
-   * offers to redo it.
-   */
   const skipOnboarding = useCallback(() => {
     loadSampleRecords();
 
@@ -290,55 +380,52 @@ export function DataProvider({ children }) {
       completedAt: null,
       skippedAt: new Date().toISOString(),
     });
-  }, [loadSampleRecords, setOnboarding]);
+  }, [loadSampleRecords]);
 
-  /**
-   * Loads Maya's sample data. Offered from Home when there is nothing tracked
-   * yet, and from Settings at any other time.
-   *
-   * `unlock: true` — the finished app: sample profile included, so every
-   * feature is open and the brief is immediately readable.
-   *
-   * `unlock: false` — the same tracking rows behind a first-run profile: the
-   * survey still asks its questions, and until they are answered the
-   * personalised features stay locked. Resets the profile rather than trusting
-   * whatever state this browser was already in, so the button always lands the
-   * same way.
-   */
   const resetToSampleData = useCallback(
     ({ unlock = true } = {}) => {
       if (unlock) {
-        loadSampleRecords();
+        setSymptomEntries(MOCK_SYMPTOM_ENTRIES);
+        setContextEntries(MOCK_CONTEXT_ENTRIES);
         setOnboarding({ ...SAMPLE_ONBOARDING });
+        setDraft({ statement: SAMPLE_ONBOARDING.doctorNote, questions: MOCK_QUESTIONS });
         return;
       }
 
-      // The same tracking rows behind a blank profile, and none of Maya's words:
-      // these are a stranger's records, and the survey supplies the statement
-      // once it is answered.
-      setEntries({ symptomEntries: MOCK_SYMPTOM_ENTRIES, contextEntries: MOCK_CONTEXT_ENTRIES });
+      setSymptomEntries(MOCK_SYMPTOM_ENTRIES);
+      setContextEntries(MOCK_CONTEXT_ENTRIES);
       setOnboarding({ ...EMPTY_ONBOARDING });
       resetBriefDraft();
     },
-    [loadSampleRecords, setEntries, setOnboarding],
+    [setSymptomEntries, setContextEntries, setOnboarding, setDraft],
   );
 
-  const clearAllEntries = useCallback(() => {
-    setEntries(EMPTY_ENTRIES);
-  }, [setEntries]);
+  const clearAllEntries = useCallback(async () => {
+    if (supabaseUser) {
+      await Promise.all([
+        supabase.from("symptom_entries").delete().eq("user_id", supabaseUser.id),
+        supabase.from("context_entries").delete().eq("user_id", supabaseUser.id),
+      ]).catch((err) => console.error("Failed to clear entries:", err));
+    }
+    setSymptomEntries([]);
+    setContextEntries([]);
+  }, [supabaseUser]);
 
-  /** Back to a brand new user: no answers, no entries, no draft. */
-  const startFresh = useCallback(() => {
-    setEntries(EMPTY_ENTRIES);
+  const startFresh = useCallback(async () => {
+    if (supabaseUser) {
+      await Promise.all([
+        supabase.from("symptom_entries").delete().eq("user_id", supabaseUser.id),
+        supabase.from("context_entries").delete().eq("user_id", supabaseUser.id),
+        supabase.from("profiles").delete().eq("user_id", supabaseUser.id),
+        supabase.from("evidence_briefs").delete().eq("user_id", supabaseUser.id),
+      ]).catch((err) => console.error("Failed to start fresh:", err));
+    }
+    setSymptomEntries([]);
+    setContextEntries([]);
     setOnboarding({ ...EMPTY_ONBOARDING });
     resetBriefDraft();
-  }, [setEntries, setOnboarding]);
+  }, [supabaseUser]);
 
-  /**
-   * Called by anything that wants to open a gated feature. Returns false when
-   * the feature is locked, in which case the caller shows the explanation modal
-   * instead of navigating. A locked button is never a dead button.
-   */
   const requestFeature = useCallback(
     (featureId) => {
       const feature = access.features[featureId];
@@ -350,6 +437,16 @@ export function DataProvider({ children }) {
   );
 
   const closeFeaturePrompt = useCallback(() => setLockedFeatureId(null), []);
+
+  const setStatement = useCallback(
+    (statement) => setDraft((current) => ({ ...current, statement })),
+    [setDraft],
+  );
+
+  const setQuestions = useCallback(
+    (questions) => setDraft((current) => ({ ...current, questions })),
+    [setDraft],
+  );
 
   const value = useMemo(
     () => ({
@@ -374,6 +471,7 @@ export function DataProvider({ children }) {
       resetToSampleData,
       clearAllEntries,
       startFresh,
+      saveEvidenceBrief,
       requestFeature,
       closeFeaturePrompt,
       today: todayIso(),
@@ -399,6 +497,7 @@ export function DataProvider({ children }) {
       resetToSampleData,
       clearAllEntries,
       startFresh,
+      saveEvidenceBrief,
       requestFeature,
       closeFeaturePrompt,
     ],

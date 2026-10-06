@@ -49,7 +49,7 @@ create index if not exists symptom_entries_user_symptom_idx
 create table if not exists public.context_entries (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references public.users (id) on delete cascade,
-  date        date not null unique,
+  date        date not null,
   sleep_hours numeric(3, 1) check (sleep_hours between 0 and 24),
   stress_level smallint check (stress_level between 1 and 5),
   cycle_day   smallint check (cycle_day between 1 and 45),
@@ -57,7 +57,10 @@ create table if not exists public.context_entries (
   created_at  timestamptz not null default now()
 );
 
-create index if not exists context_entries_user_date_idx
+drop index if exists context_entries_date_key;
+drop index if exists context_entries_user_date_idx;
+
+create unique index if not exists context_entries_user_date_idx
   on public.context_entries (user_id, date);
 
 -- A snapshot of the deterministic report. The numbers are stored so a brief
