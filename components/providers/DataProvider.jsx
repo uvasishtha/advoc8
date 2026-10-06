@@ -62,101 +62,95 @@ export function DataProvider({ children }) {
 
   useEffect(() => {
     async function initializeUser() {
-      let user = null;
-
       const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user ?? null;
 
-      if (sessionData.session?.user) {
-        user = sessionData.session.user;
-      } else {
-        const { data, error } = await supabase.auth.signInAnonymously();
+      if (user) {
+        setSupabaseUser(user);
 
-        if (error) {
-          console.error("Supabase anonymous auth failed:", error);
-        } else {
-          user = data.user;
+        const { error: usersError } = await supabase
+          .from("users")
+          .upsert({ id: user.id, email: user.email ?? "" });
+
+        if (usersError) {
+          console.error("Failed to upsert user:", usersError);
         }
       }
 
-      if (!user) {
-        setSupabaseReady(true);
-        return;
-      }
-
-      setSupabaseUser(user);
-
-      const { error: usersError } = await supabase
-        .from("users")
-        .upsert({ id: user.id, email: user.email ?? "" });
-
-      if (usersError) {
-        console.error("Failed to upsert user:", usersError);
-      }
-
       const [symptomsRes, contextRes, profileRes, briefRes] = await Promise.all([
-        supabase
-          .from("symptom_entries")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("date", { ascending: false }),
-        supabase
-          .from("context_entries")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("date", { ascending: false }),
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("evidence_briefs")
-          .select("*, questions(*)")
-          .eq("user_id", user.id)
-          .order("generated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
+        user
+          ? supabase
+              .from("symptom_entries")
+              .select("*")
+              .eq("user_id", user.id)
+              .order("date", { ascending: false })
+          : Promise.resolve({ data: null, error: null }),
+        user
+          ? supabase
+              .from("context_entries")
+              .select("*")
+              .eq("user_id", user.id)
+              .order("date", { ascending: false })
+          : Promise.resolve({ data: null, error: null }),
+        user
+          ? supabase
+              .from("profiles")
+              .select("*")
+              .eq("user_id", user.id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        user
+          ? supabase
+              .from("evidence_briefs")
+              .select("*, questions(*)")
+              .eq("user_id", user.id)
+              .order("generated_at", { ascending: false })
+              .limit(1)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
       ]);
 
-      if (symptomsRes.error) {
-        console.error("Failed to load symptoms:", symptomsRes.error);
-      } else if (symptomsRes.data?.length) {
-        setSymptomEntries(symptomsRes.data);
-      }
+      if (user) {
+        if (symptomsRes.error) {
+          console.error("Failed to load symptoms:", symptomsRes.error);
+        } else if (symptomsRes.data?.length) {
+          setSymptomEntries(symptomsRes.data);
+        }
 
-      if (contextRes.error) {
-        console.error("Failed to load context:", contextRes.error);
-      } else if (contextRes.data?.length) {
-        setContextEntries(contextRes.data);
-      }
+        if (contextRes.error) {
+          console.error("Failed to load context:", contextRes.error);
+        } else if (contextRes.data?.length) {
+          setContextEntries(contextRes.data);
+        }
 
-      if (profileRes.error) {
-        console.error("Failed to load profile:", profileRes.error);
-      } else if (profileRes.data) {
-        setOnboarding((current) => ({
-          ...current,
-          status: SETUP_STATUS.COMPLETED,
-          firstName: profileRes.data.display_name ?? current.firstName,
-          concern: profileRes.data.main_concern ?? current.concern,
-          completedAt: profileRes.data.updated_at ?? new Date().toISOString(),
-          skippedAt: null,
-          source: "local",
-        }));
-      }
+        if (profileRes.error) {
+          console.error("Failed to load profile:", profileRes.error);
+        } else if (profileRes.data) {
+          setOnboarding((current) => ({
+            ...current,
+            status: SETUP_STATUS.COMPLETED,
+            firstName: profileRes.data.display_name ?? current.firstName,
+            concern: profileRes.data.main_concern ?? current.concern,
+            completedAt: profileRes.data.updated_at ?? new Date().toISOString(),
+            skippedAt: null,
+            source: "local",
+          }));
+        }
 
-      if (briefRes.error) {
-        console.error("Failed to load brief:", briefRes.error);
-      } else if (briefRes.data) {
-        setDraft({
-          statement: briefRes.data.statement ?? "",
-          questions: (briefRes.data.questions ?? []).map((q) => ({
-            id: q.id,
-            text: q.text,
-            section: q.section,
-            source: q.source,
-            position: q.position,
-          })),
-        });
+        if (briefRes.error) {
+          console.error("Failed to load brief:", briefRes.error);
+        } else if (briefRes.data) {
+          setDraft({
+            statement: briefRes.data.statement ?? "",
+            questions: (briefRes.data.questions ?? []).map((q) => ({
+              id: q.id,
+              text: q.text,
+              section: q.section,
+              source: q.source,
+              position: q.position,
+            })),
+          });
+        }
       }
 
       setSupabaseReady(true);

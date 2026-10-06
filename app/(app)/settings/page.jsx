@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCcw, Trash2, UserRound } from "lucide-react";
+import { RotateCcw, Trash2, UserRound, LogOut } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Disclaimer } from "@/components/ui/Notice";
 import { DAY_TO_DAY_OPTIONS, FIRST_NOTICED_OPTIONS } from "@/lib/onboarding";
 import { formatDate } from "@/lib/format";
+import { supabase } from "@/lib/supabase";
 
 function ConfirmDialog({ isOpen, onClose, onConfirm, title, description, confirmLabel }) {
   return (
@@ -50,6 +51,7 @@ export default function SettingsPage() {
   } = useAdvoc8();
 
   const [pendingAction, setPendingAction] = useState(null);
+  const [signingOut, setSigningOut] = useState(false);
 
   function runAction() {
     pendingAction?.run();
@@ -88,7 +90,7 @@ export default function SettingsPage() {
                   }`
                 : "No",
             ],
-            ["Account", "Prototype — nothing leaves this browser"],
+            ["Account", "Signed in"],
           ].map(([term, value]) => (
             <div key={term} className="rounded-lg bg-secondary-bg p-3">
               <dt className="hint">{term}</dt>
@@ -99,10 +101,10 @@ export default function SettingsPage() {
 
       </Card>
 
-      <Card className="p-5 sm:p-6">
+        <Card className="p-5 sm:p-6">
         <CardHeader
           title="Your record"
-          description="Everything is stored in this browser for the prototype."
+          description="Stored securely in your Supabase account."
           action={
             <Badge tone="outline">
               {symptomEntries.length} symptom · {contextEntries.length} context
@@ -163,13 +165,27 @@ export default function SettingsPage() {
                 run: clearAllEntries,
                 title: "Delete everything?",
                 description:
-                  "Every symptom and context entry will be removed from this browser. This cannot be undone.",
+                  "Every symptom and context entry will be removed. This cannot be undone.",
                 confirmLabel: "Delete all entries",
               })
             }
           >
             <Trash2 size={16} aria-hidden="true" />
             Delete all entries
+          </Button>
+
+          <Button
+            variant="outline"
+            loading={signingOut}
+            disabled={signingOut}
+            onClick={async () => {
+              setSigningOut(true);
+              await supabase.auth.signOut();
+              setSigningOut(false);
+            }}
+          >
+            <LogOut size={16} aria-hidden="true" />
+            Sign out
           </Button>
         </div>
       </Card>
@@ -194,8 +210,7 @@ export default function SettingsPage() {
       </Card>
 
       <Disclaimer>
-        Entries stay in this browser. There is no account and no server, so clearing this browser&rsquo;s
-        data clears your record with it.
+        Entries are stored in your Supabase account and linked to your email. They are private and not shared.
       </Disclaimer>
 
       <ConfirmDialog

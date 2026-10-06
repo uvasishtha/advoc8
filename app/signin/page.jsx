@@ -2,36 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Mail } from "lucide-react";
+import { Lock, UserPlus, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 
 export default function SignInPage() {
   const { supabaseUser, isReady } = useAdvoc8();
+  const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-    setError("");
-
-    const { error } = await supabase.auth.signInWithOtp(email, {
-      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/home` : undefined,
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      setMessage("Check your email for the magic link.");
-    }
-
-    setLoading(false);
-  }
 
   if (!isReady) {
     return (
@@ -41,7 +26,34 @@ export default function SignInPage() {
     );
   }
 
-  const isAuthenticated = supabaseUser && !supabaseUser.is_anonymous;
+  const isAuthenticated = !!supabaseUser && !supabaseUser.is_anonymous;
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+    setError("");
+
+    try {
+      if (mode === "signin") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        if (password !== confirm) {
+          setError("Passwords do not match.");
+          setLoading(false);
+          return;
+        }
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        setMessage("Account created. Check your email to confirm your address.");
+      }
+    } catch (err) {
+      setError(err.message ?? "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -65,7 +77,7 @@ export default function SignInPage() {
             <p className="eyebrow">Signed in</p>
             <h1 className="mt-2 font-serif text-2xl font-semibold">You are already signed in</h1>
             <p className="mt-2 hint">
-              You can go straight to your dashboard, or sign in with a different email.
+              You can go straight to your dashboard, or sign out and use a different account.
             </p>
             <div className="mt-6 flex flex-col gap-3">
               <Button href="/home" className="w-full">
@@ -84,15 +96,32 @@ export default function SignInPage() {
           </div>
         ) : (
           <div>
-            <div className="text-center">
-              <p className="eyebrow">Welcome</p>
-              <h1 className="mt-2 font-serif text-2xl font-semibold">Sign in to Advoc8</h1>
-              <p className="mt-2 hint">
-                Enter your email and we will send you a magic link. No password needed.
-              </p>
+            <div className="flex rounded-full border border-border bg-secondary-bg p-1">
+              <button
+                type="button"
+                onClick={() => { setMode("signin"); setError(""); setMessage(""); }}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-2 rounded-full py-2 text-sm font-medium transition-colors",
+                  mode === "signin" ? "bg-surface text-foreground shadow-sm" : "text-muted hover:text-foreground",
+                )}
+              >
+                <LogIn size={15} aria-hidden="true" />
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode("signup"); setError(""); setMessage(""); }}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-2 rounded-full py-2 text-sm font-medium transition-colors",
+                  mode === "signup" ? "bg-surface text-foreground shadow-sm" : "text-muted hover:text-foreground",
+                )}
+              >
+                <UserPlus size={15} aria-hidden="true" />
+                Create Account
+              </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
                 <label htmlFor="email" className="sr-only">
                   Email address
@@ -108,6 +137,38 @@ export default function SignInPage() {
                 />
               </div>
 
+              <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-strong"
+                />
+              </div>
+
+              {mode === "signup" ? (
+                <div>
+                  <label htmlFor="confirm" className="sr-only">
+                    Confirm password
+                  </label>
+                  <input
+                    id="confirm"
+                    type="password"
+                    required
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    placeholder="Confirm password"
+                    className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-strong"
+                  />
+                </div>
+              ) : null}
+
               {error ? (
                 <p className="text-sm text-warning">{error}</p>
               ) : null}
@@ -116,8 +177,8 @@ export default function SignInPage() {
               ) : null}
 
               <Button type="submit" loading={loading} disabled={loading} className="w-full">
-                <Mail size={16} aria-hidden="true" />
-                Send magic link
+                <Lock size={16} aria-hidden="true" />
+                {mode === "signin" ? "Sign In" : "Create Account"}
               </Button>
             </form>
 

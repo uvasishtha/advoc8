@@ -10,8 +10,8 @@ export function AuthGuard({ children }) {
 
   useEffect(() => {
     if (!isReady) return;
-    const isAnonymous = !supabaseUser || supabaseUser.is_anonymous;
-    if (isAnonymous) {
+    const isAuthenticated = !!supabaseUser && !supabaseUser.is_anonymous;
+    if (!isAuthenticated) {
       router.replace("/signin");
     }
   }, [isReady, router, supabaseUser]);
@@ -24,8 +24,8 @@ export function AuthGuard({ children }) {
     );
   }
 
-  const isAnonymous = !supabaseUser || supabaseUser.is_anonymous;
-  if (isAnonymous) return null;
+  const isAuthenticated = !!supabaseUser && !supabaseUser.is_anonymous;
+  if (!isAuthenticated) return null;
 
   return children;
 }
