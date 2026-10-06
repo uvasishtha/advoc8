@@ -67,23 +67,49 @@ export function DataProvider({ children }) {
 
   useEffect(() => {
     async function initializeUser() {
+      let user = null;
+
       const { data: sessionData } = await supabase.auth.getSession();
 
       if (sessionData.session?.user) {
-        setSupabaseUser(sessionData.session.user);
+        user = sessionData.session.user;
+      } else {
+        const { data, error } = await supabase.auth.signInAnonymously();
+
+        if (error) {
+          console.error("Supabase anonymous auth failed:", error);
+        } else {
+          user = data.user;
+        }
+      }
+
+      if (!user) {
         setSupabaseReady(true);
         return;
       }
 
-      const { data, error } = await supabase.auth.signInAnonymously();
+      setSupabaseUser(user);
 
-      if (error) {
-        console.error("Supabase anonymous auth failed:", error);
-        setSupabaseReady(true);
-        return;
+      const { error: usersError } = await supabase
+        .from("users")
+        .upsert({ id: user.id, email: user.email ?? "" });
+
+      if (usersError) {
+        console.error("Failed to upsert user:", usersError);
       }
 
-      setSupabaseUser(data.user);
+      const { data: rows, error: loadError } = await supabase
+        .from("symptom_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false });
+
+      if (loadError) {
+        console.error("Failed to load symptoms:", loadError);
+      } else if (rows?.length) {
+        setEntries((current) => ({ ...current, symptomEntries: rows }));
+      }
+
       setSupabaseReady(true);
     }
 
@@ -131,38 +157,43 @@ export function DataProvider({ children }) {
 
   const addSymptomEntry = useCallback(
     async (entry) => {
-      if (!supabaseUser) return;
+      if (supabaseUser) {
+        const row = {
+          user_id: supabaseUser.id,
+          symptom: entry.symptom,
+          date: entry.date,
+          severity: entry.severity ?? null,
+          duration_minutes: entry.duration_minutes ?? null,
+          notes: entry.notes ?? null,
+          impact: entry.impact ?? null,
+        };
 
-      const row = {
-        user_id: supabaseUser.id,
-        symptom: entry.symptom,
-        date: entry.date,
-        severity: entry.severity ?? null,
-        duration_minutes: entry.duration_minutes ?? null,
-        notes: entry.notes ?? null,
-        impact: entry.impact ?? null,
-      };
+        const { data, error } = await supabase
+          .from("symptom_entries")
+          .insert(row)
+          .select()
+          .single();
 
-      const { data, error } = await supabase
-        .from("symptom_entries")
-        .insert(row)
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Failed to save symptom:", error);
-        return;
+        if (error) {
+          console.error("Failed to save symptom:", error);
+        } else if (data) {
+          setEntries((current) => ({
+            ...current,
+            symptomEntries: [data, ...current.symptomEntries],
+          }));
+          return;
+        }
       }
 
-      const saved =
-        data ?? {
-          ...row,
-          id: entry.id ?? `sym-${entry.date}-${entry.symptom}-${Date.now()}`,
-        };
+      const row = {
+        user_id: supabaseUser?.id ?? "user-local",
+        ...entry,
+        id: entry.id ?? `sym-${entry.date}-${entry.symptom}-${Date.now()}`,
+      };
 
       setEntries((current) => ({
         ...current,
-        symptomEntries: [saved, ...current.symptomEntries],
+        symptomEntries: [row, ...current.symptomEntries],
       }));
     },
     [supabaseUser, setEntries],
@@ -174,8 +205,22 @@ export function DataProvider({ children }) {
         ...current,
         symptomEntries: current.symptomEntries.filter((entry) => entry.id !== id),
       }));
+
+      if (supabaseUser) {
+        const entry = symptomEntries.find((item) => item.id === id);
+
+        if (entry?.user_id === supabaseUser.id) {
+          void supabase
+            .from("symptom_entries")
+            .delete()
+            .eq("id", id)
+            .then(({ error }) => {
+              if (error) console.error("Failed to delete symptom:", error);
+            });
+        }
+      }
     },
-    [setEntries],
+    [supabaseUser, symptomEntries, setEntries],
   );
 
   const upsertContextEntry = useCallback(
