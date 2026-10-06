@@ -67,9 +67,31 @@ export default function SignInPage() {
           setLoading(false);
           return;
         }
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        setMessage("Account created. Redirecting…");
+
+        const res = await fetch("/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          const message = data?.error ?? `Sign up failed (${res.status}).`;
+          if (res.status === 409) {
+            setError(`${message} Switch to Sign In to log in.`);
+            setTimeout(() => setMode("signin"), 2500);
+          } else {
+            throw new Error(message);
+          }
+          return;
+        }
+
+        setMessage("Account created. Signing you in…");
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) throw signInError;
+
         router.replace("/home");
       }
     } catch (err) {
