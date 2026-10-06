@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export function Logo({ className, asLink = true }) {
+export function Logo({ className, asLink = true, href = "/" }) {
   const mark = (
     <span className={cn("flex items-center gap-2", className)}>
       <span
@@ -17,7 +17,7 @@ export function Logo({ className, asLink = true }) {
   if (!asLink) return mark;
 
   return (
-    <Link href="/" className="rounded-full">
+    <Link href={href} className="rounded-full">
       {mark}
     </Link>
   );

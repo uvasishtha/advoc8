@@ -13,7 +13,7 @@ import { UnlockModal } from "@/components/onboarding/FeatureLock";
 // because it is the rehearsal, not a step in building the record — it reads the
 // brief, so it only makes sense once Track and Prepare have been done.
 const NAV_ITEMS = [
-  { href: "/", label: "Home", icon: House },
+  { href: "/home", label: "Home", icon: House },
   { href: "/track", label: "Track", icon: NotebookPen },
   { href: "/prepare", label: "Prepare", icon: ClipboardList, feature: FEATURE_IDS.BRIEF },
   { href: "/practice", label: "Practice", icon: Sparkle, feature: FEATURE_IDS.PRACTICE },
@@ -106,7 +106,7 @@ export function AppShell({ children }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur md:hidden">
           <div className="flex items-center justify-between px-4 py-3">
-            <Logo />
+          <Logo href="/home" />
             <Link href="/settings" className="rounded-full p-2 text-muted hover:text-foreground">
               <Settings size={18} aria-hidden="true" />
               <span className="sr-only">Settings</span>
