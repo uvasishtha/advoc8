@@ -60,121 +60,140 @@ export function DataProvider({ children }) {
   // Transient UI state: which lock was clicked. Not worth persisting.
   const [lockedFeatureId, setLockedFeatureId] = useState(null);
 
+  const upsertUserRow = useCallback(async (user) => {
+    const email = user.email ?? `${user.id}@anonymous.local`;
+
+    let usersError = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const { error } = await supabase
+        .from("users")
+        .upsert({ id: user.id, email });
+
+      if (!error) break;
+
+      usersError = error;
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, 200 * attempt));
+      }
+    }
+
+    if (usersError) {
+      console.error("Failed to upsert user:", {
+        message: usersError.message,
+        code: usersError.code,
+        details: usersError.details,
+        hint: usersError.hint,
+      });
+    }
+  }, []);
+
+  const loadUserData = useCallback(async (user) => {
+    const [symptomsRes, contextRes, profileRes, briefRes] = await Promise.all([
+      supabase
+        .from("symptom_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false }),
+      supabase
+        .from("context_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false }),
+      supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("evidence_briefs")
+        .select("*, questions(*)")
+        .eq("user_id", user.id)
+        .order("generated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    if (symptomsRes.error) {
+      console.error("Failed to load symptoms:", symptomsRes.error);
+    } else if (symptomsRes.data?.length) {
+      setSymptomEntries(symptomsRes.data);
+    }
+
+    if (contextRes.error) {
+      console.error("Failed to load context:", contextRes.error);
+    } else if (contextRes.data?.length) {
+      setContextEntries(contextRes.data);
+    }
+
+    if (profileRes.error) {
+      console.error("Failed to load profile:", profileRes.error);
+    } else if (profileRes.data) {
+      setOnboarding((current) => ({
+        ...current,
+        status: SETUP_STATUS.COMPLETED,
+        firstName: profileRes.data.display_name ?? current.firstName,
+        concern: profileRes.data.main_concern ?? current.concern,
+        completedAt: profileRes.data.updated_at ?? new Date().toISOString(),
+        skippedAt: null,
+        source: "local",
+      }));
+    }
+
+    if (briefRes.error) {
+      console.error("Failed to load brief:", briefRes.error);
+    } else if (briefRes.data) {
+      setDraft({
+        statement: briefRes.data.statement ?? "",
+        questions: (briefRes.data.questions ?? []).map((q) => ({
+          id: q.id,
+          text: q.text,
+          section: q.section,
+          source: q.source,
+          position: q.position,
+        })),
+      });
+    }
+  }, [setDraft, setSymptomEntries, setContextEntries, setOnboarding]);
+
   useEffect(() => {
     async function initializeUser() {
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData.session?.user ?? null;
 
       if (user) {
-        setSupabaseUser(user);
-
-        const email = user.email ?? `${user.id}@anonymous.local`;
-
-        let usersError = null;
-        for (let attempt = 1; attempt <= 3; attempt++) {
-          const { error } = await supabase
-            .from("users")
-            .upsert({ id: user.id, email });
-
-          if (!error) break;
-
-          usersError = error;
-          if (attempt < 3) {
-            await new Promise((r) => setTimeout(r, 200 * attempt));
-          }
-        }
-
-        if (usersError) {
-          console.error("Failed to upsert user:", {
-            message: usersError.message,
-            code: usersError.code,
-            details: usersError.details,
-            hint: usersError.hint,
-          });
-        }
-      }
-
-      const [symptomsRes, contextRes, profileRes, briefRes] = await Promise.all([
-        user
-          ? supabase
-              .from("symptom_entries")
-              .select("*")
-              .eq("user_id", user.id)
-              .order("date", { ascending: false })
-          : Promise.resolve({ data: null, error: null }),
-        user
-          ? supabase
-              .from("context_entries")
-              .select("*")
-              .eq("user_id", user.id)
-              .order("date", { ascending: false })
-          : Promise.resolve({ data: null, error: null }),
-        user
-          ? supabase
-              .from("profiles")
-              .select("*")
-              .eq("user_id", user.id)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-        user
-          ? supabase
-              .from("evidence_briefs")
-              .select("*, questions(*)")
-              .eq("user_id", user.id)
-              .order("generated_at", { ascending: false })
-              .limit(1)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-      ]);
-
-      if (user) {
-        if (symptomsRes.error) {
-          console.error("Failed to load symptoms:", symptomsRes.error);
-        } else if (symptomsRes.data?.length) {
-          setSymptomEntries(symptomsRes.data);
-        }
-
-        if (contextRes.error) {
-          console.error("Failed to load context:", contextRes.error);
-        } else if (contextRes.data?.length) {
-          setContextEntries(contextRes.data);
-        }
-
-        if (profileRes.error) {
-          console.error("Failed to load profile:", profileRes.error);
-        } else if (profileRes.data) {
-          setOnboarding((current) => ({
-            ...current,
-            status: SETUP_STATUS.COMPLETED,
-            firstName: profileRes.data.display_name ?? current.firstName,
-            concern: profileRes.data.main_concern ?? current.concern,
-            completedAt: profileRes.data.updated_at ?? new Date().toISOString(),
-            skippedAt: null,
-            source: "local",
-          }));
-        }
-
-        if (briefRes.error) {
-          console.error("Failed to load brief:", briefRes.error);
-        } else if (briefRes.data) {
-          setDraft({
-            statement: briefRes.data.statement ?? "",
-            questions: (briefRes.data.questions ?? []).map((q) => ({
-              id: q.id,
-              text: q.text,
-              section: q.section,
-              source: q.source,
-              position: q.position,
-            })),
-          });
-        }
+        await upsertUserRow(user);
+        await loadUserData(user);
       }
 
       setSupabaseReady(true);
     }
 
     initializeUser();
-  }, [setDraft]);
+  }, [setDraft, loadUserData, upsertUserRow]);
+
+  useEffect(() => {
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_IN" && session?.user) {
+          setSupabaseUser(session.user);
+          await upsertUserRow(session.user);
+          await loadUserData(session.user);
+          setSupabaseReady(true);
+        } else if (event === "SIGNED_OUT") {
+          setSupabaseUser(null);
+          setSymptomEntries([]);
+          setContextEntries([]);
+          setOnboarding({ ...EMPTY_ONBOARDING });
+          resetBriefDraft();
+          setSupabaseReady(true);
+        }
+      },
+    );
+
+    return () => {
+      subscription.subscription?.unsubscribe?.();
+    };
+  }, [loadUserData, resetBriefDraft, setContextEntries, setOnboarding, setSupabaseReady, setSupabaseUser, setSymptomEntries, upsertUserRow]);
 
   const isReady = supabaseReady;
 
