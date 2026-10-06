@@ -68,12 +68,29 @@ export function DataProvider({ children }) {
       if (user) {
         setSupabaseUser(user);
 
-        const { error: usersError } = await supabase
-          .from("users")
-          .upsert({ id: user.id, email: user.email ?? "" });
+        const email = user.email ?? `${user.id}@anonymous.local`;
+
+        let usersError = null;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          const { error } = await supabase
+            .from("users")
+            .upsert({ id: user.id, email });
+
+          if (!error) break;
+
+          usersError = error;
+          if (attempt < 3) {
+            await new Promise((r) => setTimeout(r, 200 * attempt));
+          }
+        }
 
         if (usersError) {
-          console.error("Failed to upsert user:", usersError);
+          console.error("Failed to upsert user:", {
+            message: usersError.message,
+            code: usersError.code,
+            details: usersError.details,
+            hint: usersError.hint,
+          });
         }
       }
 
