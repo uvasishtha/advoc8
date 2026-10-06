@@ -1,10 +1,18 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { buildReport } from "@/lib/analytics";
 import { findSymptomConnections } from "@/lib/analytics/connections";
 import { todayIso } from "@/lib/format";
 import { createLocalStore, useLocalStore } from "@/lib/local-store";
+import { supabase } from "@/lib/supabase";
 import {
   EMPTY_ONBOARDING,
   SAMPLE_ONBOARDING,
@@ -20,7 +28,6 @@ import {
 import { draftStore, resetBriefDraft, seedBriefDraft } from "@/lib/brief-draft";
 
 const EMPTY_ENTRIES = Object.freeze({ symptomEntries: [], contextEntries: [] });
-const LOCAL_USER_ID = "user-local";
 
 const entriesStore = createLocalStore("advoc8.entries.v1", EMPTY_ENTRIES);
 const onboardingStore = createLocalStore("advoc8.onboarding.v1", EMPTY_ONBOARDING);
@@ -52,10 +59,39 @@ export function DataProvider({ children }) {
   const [onboarding, setOnboarding, onboardingReady] = useLocalStore(onboardingStore);
   const [draft, setDraft, draftReady] = useLocalStore(draftStore);
 
+  const [supabaseUser, setSupabaseUser] = useState(null);
+  const [supabaseReady, setSupabaseReady] = useState(false);
+
   // Transient UI state: which lock was clicked. Not worth persisting.
   const [lockedFeatureId, setLockedFeatureId] = useState(null);
 
-  const isReady = entriesReady && onboardingReady && draftReady;
+  useEffect(() => {
+    async function initializeUser() {
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (sessionData.session?.user) {
+        setSupabaseUser(sessionData.session.user);
+        setSupabaseReady(true);
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInAnonymously();
+
+      if (error) {
+        console.error("Supabase anonymous auth failed:", error);
+        setSupabaseReady(true);
+        return;
+      }
+
+      setSupabaseUser(data.user);
+      setSupabaseReady(true);
+    }
+
+    initializeUser();
+  }, []);
+
+  const isReady =
+    entriesReady && onboardingReady && draftReady && supabaseReady;
   const { symptomEntries, contextEntries } = entries;
 
   const profile = useMemo(() => buildProfile(onboarding), [onboarding]);
@@ -94,15 +130,42 @@ export function DataProvider({ children }) {
   const lockedFeature = lockedFeatureId ? access.features[lockedFeatureId] ?? null : null;
 
   const addSymptomEntry = useCallback(
-    (entry) => {
+    async (entry) => {
+      if (!supabaseUser) return;
+
       const row = {
-        user_id: LOCAL_USER_ID,
-        ...entry,
-        id: entry.id ?? `sym-${entry.date}-${entry.symptom}-${Date.now()}`,
+        user_id: supabaseUser.id,
+        symptom: entry.symptom,
+        date: entry.date,
+        severity: entry.severity ?? null,
+        duration_minutes: entry.duration_minutes ?? null,
+        notes: entry.notes ?? null,
+        impact: entry.impact ?? null,
       };
-      setEntries((current) => ({ ...current, symptomEntries: [row, ...current.symptomEntries] }));
+
+      const { data, error } = await supabase
+        .from("symptom_entries")
+        .insert(row)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Failed to save symptom:", error);
+        return;
+      }
+
+      const saved =
+        data ?? {
+          ...row,
+          id: entry.id ?? `sym-${entry.date}-${entry.symptom}-${Date.now()}`,
+        };
+
+      setEntries((current) => ({
+        ...current,
+        symptomEntries: [saved, ...current.symptomEntries],
+      }));
     },
-    [setEntries],
+    [supabaseUser, setEntries],
   );
 
   const removeSymptomEntry = useCallback(
@@ -125,17 +188,17 @@ export function DataProvider({ children }) {
             ...current,
             contextEntries: [
               ...current.contextEntries,
-              { ...entry, id: `ctx-${entry.date}`, user_id: LOCAL_USER_ID },
+            { ...entry, id: `ctx-${entry.date}`, user_id: supabaseUser?.id },
             ].sort((a, b) => a.date.localeCompare(b.date)),
-          };
-        }
+           };
+         }
 
-        const next = [...current.contextEntries];
-        next[index] = { ...next[index], ...entry };
-        return { ...current, contextEntries: next };
-      });
-    },
-    [setEntries],
+         const next = [...current.contextEntries];
+         next[index] = { ...next[index], ...entry };
+         return { ...current, contextEntries: next };
+       });
+     },
+     [setEntries, supabaseUser],
   );
 
   /** Finishing the survey also writes the first version of the brief's own words. */
