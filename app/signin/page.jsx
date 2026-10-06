@@ -52,10 +52,16 @@ export default function SignInPage() {
 
     try {
       if (mode === "signin") {
+        if (!supabase.auth.signInWithPassword) {
+          throw new Error("Auth not configured. Check .env.local.");
+        }
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         router.replace("/home");
       } else {
+        if (!supabase.auth.signUp) {
+          throw new Error("Auth not configured. Check .env.local.");
+        }
         if (password !== confirm) {
           setError("Passwords do not match.");
           setLoading(false);
