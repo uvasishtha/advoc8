@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 export default function AboutPage() {
   return (
     <PublicShell>
-      <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
+      <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
         <div className="text-center">
           <Badge tone="accent">About Advoc8</Badge>
           <h1 className="mt-4 font-serif text-4xl font-semibold leading-tight sm:text-5xl">
@@ -52,6 +52,60 @@ export default function AboutPage() {
               data. Account creation and cloud sync are planned but not yet enabled.
             </p>
           </Card>
+        </div>
+
+        <div className="mt-12">
+          <h2 className="text-center font-serif text-2xl font-semibold sm:text-3xl">
+            Our team
+          </h2>
+          <div className="mt-8 flex justify-center">
+            <img
+              src="/team.png"
+              alt="Advoc8 team"
+              className="w-full max-w-3xl rounded-2xl border border-border object-cover shadow-sm"
+            />
+          </div>
+        </div>
+
+        <div className="mt-12">
+          <h2 className="text-center font-serif text-2xl font-semibold sm:text-3xl">
+            Watch the pitch
+          </h2>
+          <div className="mt-8 flex justify-center">
+            <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-border">
+              <iframe
+                src="https://www.youtube.com/watch?v=iS6Buit68B0"
+                title="Advoc8 pitch video"
+                className="aspect-video w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <h2 className="font-serif text-2xl font-semibold sm:text-3xl">
+            Get in touch
+          </h2>
+          <p className="mt-3 text-muted">
+            <a
+              href="mailto:advoc8care.co@gmail.com"
+              className="text-accent-strong hover:underline"
+            >
+              advocates8care.co@gmail.com
+            </a>
+          </p>
+          <p className="mt-3 text-muted">
+            <a
+              href="https://instagram.com/advoc8care"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent-strong hover:underline"
+            >
+              @advoc8care on Instagram
+            </a>
+          </p>
         </div>
       </section>
     </PublicShell>
