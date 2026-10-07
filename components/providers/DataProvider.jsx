@@ -154,8 +154,13 @@ export function DataProvider({ children }) {
       async (event, session) => {
         if (event === "SIGNED_IN" && session?.user) {
           setSupabaseUser(session.user);
-          await loadUserData(session.user);
-          setSupabaseReady(true);
+          try {
+            await loadUserData(session.user);
+          } catch (error) {
+            console.error("Failed to load user data:", error);
+          } finally {
+            setSupabaseReady(true);
+          }
         } else if (event === "SIGNED_OUT") {
           setSupabaseUser(null);
           setSymptomEntries([]);
