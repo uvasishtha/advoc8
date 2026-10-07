@@ -47,6 +47,24 @@ export function PublicShell({ children }) {
                 Settings
               </Link>
             </nav>
+
+            <div className="flex flex-col gap-2 text-sm">
+              <p className="eyebrow">Contact</p>
+              <a
+                href="mailto:advoc8care.co@gmail.com"
+                className="text-lg font-medium text-foreground hover:text-accent-strong"
+              >
+                advocates8care.co@gmail.com
+              </a>
+              <a
+                href="https://instagram.com/advoc8care"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted hover:text-foreground"
+              >
+                @advoc8care on Instagram
+              </a>
+            </div>
           </div>
 
           <div className="mt-10 border-t border-border pt-6">
