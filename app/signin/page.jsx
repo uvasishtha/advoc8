@@ -57,7 +57,6 @@ export default function SignInPage() {
         }
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        router.replace("/home");
       } else {
         if (!supabase.auth.signUp) {
           throw new Error("Auth not configured. Check .env.local.");
@@ -89,10 +88,20 @@ export default function SignInPage() {
 
         setMessage("Account created. Signing you in…");
 
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInError) throw signInError;
+        const signInResult = await supabase.auth.signInWithPassword({ email, password });
 
-        router.replace("/home");
+        if (signInResult.error) {
+          const message = signInResult.error.message ?? "";
+          const notConfigured = !supabase.auth.signInWithPassword || message.includes("not configured");
+
+          if (notConfigured) {
+            setError("Account created. Please sign in below.");
+            setMode("signin");
+            return;
+          }
+
+          throw signInResult.error;
+        }
       }
     } catch (err) {
       setError(err.message ?? "Something went wrong.");

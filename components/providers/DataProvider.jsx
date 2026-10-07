@@ -139,6 +139,7 @@ export function DataProvider({ children }) {
       const user = sessionData.session?.user ?? null;
 
       if (user) {
+        setSupabaseUser(user);
         await loadUserData(user);
       }
 
