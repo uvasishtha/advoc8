@@ -6,5 +6,6 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["**/*.test.js"],
+    exclude: ["**/.kilo/**", "node_modules/**"],
   },
 });

@@ -1,12 +1,18 @@
 # Advoc8
 
-### Turn “something feels wrong” into evidence.
+### Helping women advocate for better care.
 
-Advoc8 is a medical advocacy tool designed for women who experience recurring or fluctuating symptoms that can be difficult to explain during a short medical appointment.
+Advoc8 is a simple, focused tool that turns recurring symptoms into a clear Evidence Brief you can bring to your doctor. It won the HealthKit Hackathon for its straightforward approach to health tracking and communication.
 
-Instead of relying on memory, Advoc8 helps users **track symptoms, identify patterns in their own data, create an Evidence Brief, and practice communicating with their doctor.**
+Instead of relying on memory, Advoc8 helps users **track symptoms, identify patterns in their own data, and practice communicating with their doctor.**
 
 > Advoc8 does not diagnose conditions or provide medical treatment. It organizes and analyzes user-provided information to support better communication with healthcare providers.
+
+---
+
+## Status
+
+Currently running in **demo mode** with sample data. The app is fully functional for exploration. Account creation and cloud sync are planned but not yet enabled. Data is stored locally in your browser for now.
 
 ---
 
@@ -84,16 +90,7 @@ The brief can be downloaded and brought to a medical appointment.
 
 ### 04 — Practice
 
-After creating the Evidence Brief, users can practice communicating their experience with Advoc8's AI.
-
-The AI can:
-
-- simulate common appointment questions
-- help users practice explaining their symptoms
-- reference information from their Evidence Brief
-- help organize questions for their appointment
-
-The AI is used for **communication**, not diagnosis.
+After creating the Evidence Brief, users can practice communicating their experience with a simple scripted rehearsal. The rehearsal uses only the numbers from your own brief to help you put your experience into words before your appointment.
 
 ---
 

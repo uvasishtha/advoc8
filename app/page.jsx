@@ -48,17 +48,21 @@ export default function LandingPage() {
     <PublicShell>
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
         <div className="max-w-3xl">
-          <Badge tone="accent">For anyone who has said “it&rsquo;s probably nothing”</Badge>
+          <Badge tone="accent">HealthKit Hackathon winner</Badge>
           <h1 className="mt-5 font-serif text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
-            Turn &ldquo;something feels wrong&rdquo; into a record your doctor can actually read.
+            Helping women advocate for better care.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
-            Symptoms that come and go are hard to describe in a ten-minute appointment. Advoc8 keeps
-            the record, shows you the patterns in it, and helps you walk in with something concrete.
+            A simple, focused tool that turns your symptoms and notes into a clear
+            Evidence Brief you can bring to your doctor.
+          </p>
+          <p className="mt-3 text-base leading-relaxed text-muted">
+            Clean UI, straightforward tracking, and a readable summary — nothing
+            flashy, just something that works.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <OpenDemoButton unlock={false}>Open the sample brief</OpenDemoButton>
+            <OpenDemoButton unlock={false}>Open sample demo</OpenDemoButton>
             <Button href="/track" variant="outline" size="lg">
               Log a symptom
             </Button>
