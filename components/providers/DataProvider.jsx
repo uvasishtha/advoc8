@@ -60,33 +60,6 @@ export function DataProvider({ children }) {
   // Transient UI state: which lock was clicked. Not worth persisting.
   const [lockedFeatureId, setLockedFeatureId] = useState(null);
 
-  const upsertUserRow = useCallback(async (user) => {
-    const email = user.email ?? `${user.id}@anonymous.local`;
-
-    let usersError = null;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      const { error } = await supabase
-        .from("users")
-        .upsert({ id: user.id, email });
-
-      if (!error) break;
-
-      usersError = error;
-      if (attempt < 3) {
-        await new Promise((r) => setTimeout(r, 200 * attempt));
-      }
-    }
-
-    if (usersError) {
-      console.error("Failed to upsert user:", {
-        message: usersError.message,
-        code: usersError.code,
-        details: usersError.details,
-        hint: usersError.hint,
-      });
-    }
-  }, []);
-
   const loadUserData = useCallback(async (user) => {
     const [symptomsRes, contextRes, profileRes, briefRes] = await Promise.all([
       supabase
@@ -166,7 +139,6 @@ export function DataProvider({ children }) {
       const user = sessionData.session?.user ?? null;
 
       if (user) {
-        await upsertUserRow(user);
         await loadUserData(user);
       }
 
@@ -174,14 +146,13 @@ export function DataProvider({ children }) {
     }
 
     initializeUser();
-  }, [setDraft, loadUserData, upsertUserRow]);
+  }, [setDraft, loadUserData]);
 
   useEffect(() => {
     const { data: subscription } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_IN" && session?.user) {
           setSupabaseUser(session.user);
-          await upsertUserRow(session.user);
           await loadUserData(session.user);
           setSupabaseReady(true);
         } else if (event === "SIGNED_OUT") {
@@ -198,7 +169,7 @@ export function DataProvider({ children }) {
     return () => {
       subscription.subscription?.unsubscribe?.();
     };
-  }, [loadUserData, setContextEntries, setOnboarding, setSupabaseReady, setSupabaseUser, setSymptomEntries, upsertUserRow]);
+  }, [loadUserData, setContextEntries, setOnboarding, setSupabaseReady, setSupabaseUser, setSymptomEntries]);
 
   const isReady = supabaseReady;
 
