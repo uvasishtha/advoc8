@@ -2,36 +2,32 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, House, Lock, NotebookPen, Settings, Sparkle, User } from "lucide-react";
+import { FileText, LayoutDashboard, NotebookPen, Settings, Sparkle } from "lucide-react";
 import { Logo } from "./Logo";
 import { cn } from "@/lib/utils";
-import { FEATURE_IDS } from "@/lib/onboarding";
-import { useAdvoc8 } from "@/components/providers/DataProvider";
-import { UnlockModal } from "@/components/onboarding/FeatureLock";
+import { SAMPLE_USER } from "@/lib/seed/maya";
 
-// The four destinations, in the order the product is used. Practice is last
-// because it is the rehearsal, not a step in building the record — it reads the
-// brief, so it only makes sense once Track and Prepare have been done.
-const NAV_ITEMS = [
-  { href: "/home", label: "Home", icon: House },
-  { href: "/track", label: "Track", icon: NotebookPen },
-  { href: "/prepare", label: "Prepare", icon: ClipboardList, feature: FEATURE_IDS.BRIEF },
-  { href: "/practice", label: "Practice", icon: Sparkle, feature: FEATURE_IDS.PRACTICE },
+const NAV_GROUPS = [
+  {
+    label: "Track",
+    items: [
+      { href: "/home", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/track", label: "Log symptoms", icon: NotebookPen },
+    ],
+  },
+  {
+    label: "Prepare",
+    items: [
+      { href: "/prepare", label: "Evidence Brief", icon: FileText },
+      { href: "/practice", label: "Practice", icon: Sparkle },
+    ],
+  },
 ];
+
+const ALL_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
 
 export function AppShell({ children }) {
   const pathname = usePathname();
-  const { user, access, isReady } = useAdvoc8();
-
-  function navClass(active, locked) {
-    return cn(
-      "flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors",
-      active
-        ? "bg-accent-soft text-accent-strong"
-        : "text-muted hover:bg-secondary-bg hover:text-foreground",
-      locked && "opacity-70",
-    );
-  }
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -42,81 +38,85 @@ export function AppShell({ children }) {
         Skip to content
       </a>
 
-      <aside className="hidden w-60 shrink-0 flex-col border-b border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:border-b-0 md:border-r">
+      <aside className="hidden w-64 shrink-0 flex-col border-b border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:border-b-0 md:border-r">
         <div className="border-b border-border px-6 py-5">
           <Logo />
         </div>
 
-        <nav aria-label="Main" className="flex-1 px-3 py-5">
-          <ul className="space-y-1">
-            {NAV_ITEMS.map((item) => {
-              const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-              const locked = isReady && item.feature && !access.features[item.feature].unlocked;
-
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={navClass(active, locked)}
-                  >
-                    <item.icon size={17} aria-hidden="true" />
-                    {item.label}
-                    {locked ? <Lock size={13} className="ml-auto text-muted" aria-hidden="true" /> : null}
-                    {locked ? <span className="sr-only">(locked)</span> : null}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+        <nav aria-label="Main" className="flex-1 overflow-y-auto px-3 py-5">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label} className="mb-6 last:mb-0">
+              <p className="eyebrow px-3 pb-2">{group.label}</p>
+              <ul className="space-y-1">
+                {group.items.map((item) => {
+                  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                          active
+                            ? "bg-accent-soft text-accent-strong"
+                            : "text-muted hover:bg-secondary-bg hover:text-foreground",
+                        )}
+                      >
+                        <item.icon size={17} aria-hidden="true" />
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
 
         <div className="border-t border-border p-3">
           <Link
             href="/settings"
             aria-current={pathname === "/settings" ? "page" : undefined}
-            className={navClass(pathname === "/settings")}
+            className={cn(
+              "flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+              pathname === "/settings"
+                ? "bg-accent-soft text-accent-strong"
+                : "text-muted hover:bg-secondary-bg hover:text-foreground",
+            )}
           >
             <Settings size={17} aria-hidden="true" />
             Settings
           </Link>
 
-          <Link
-            href="/"
-            className="mt-3 flex items-center gap-3 rounded-full bg-secondary-bg px-3 py-2 transition-colors hover:bg-accent-soft"
-          >
+          <div className="mt-3 flex items-center gap-3 rounded-full bg-secondary-bg px-3 py-2">
             <span
               aria-hidden="true"
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-foreground"
             >
-              {user.initials ? user.initials : <User size={14} />}
+              MR
             </span>
             <span className="min-w-0">
               <span className="block truncate text-sm font-medium text-foreground">
-                {user.displayName}
+                {SAMPLE_USER.displayName}
               </span>
-              <span className="block truncate text-xs text-muted">
-                {user.isSample ? "Sample record" : "Your record"}
-              </span>
+              <span className="block truncate text-xs text-muted">Prototype account</span>
             </span>
-          </Link>
+          </div>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur md:hidden">
           <div className="flex items-center justify-between px-4 py-3">
-          <Logo href="/home" />
+            <Logo />
             <Link href="/settings" className="rounded-full p-2 text-muted hover:text-foreground">
               <Settings size={18} aria-hidden="true" />
               <span className="sr-only">Settings</span>
             </Link>
           </div>
           <nav aria-label="Main" className="flex gap-1 overflow-x-auto px-3 pb-3">
-            {NAV_ITEMS.map((item) => {
-              const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-              const locked = isReady && item.feature && !access.features[item.feature].unlocked;
-
+            {ALL_ITEMS.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}
@@ -131,7 +131,6 @@ export function AppShell({ children }) {
                 >
                   <item.icon size={15} aria-hidden="true" />
                   {item.label}
-                  {locked ? <Lock size={12} aria-hidden="true" /> : null}
                 </Link>
               );
             })}
@@ -142,8 +141,6 @@ export function AppShell({ children }) {
           {children}
         </main>
       </div>
-
-      <UnlockModal />
     </div>
   );
 }

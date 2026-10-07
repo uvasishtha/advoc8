@@ -114,6 +114,10 @@ there — it does not claim that one produced the other.
 
 ---
 
+## Status
+
+Currently running in **demo mode** with sample data. The app is fully functional for exploration, but **account creation and Supabase data sync are still in progress**. Data is stored in `localStorage` for now; the Supabase migration is stashed on the `backup-auth-integration` branch.
+
 ## Getting Started
 
 ```bash
