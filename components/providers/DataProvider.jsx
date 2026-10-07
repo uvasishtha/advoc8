@@ -90,7 +90,7 @@ export function DataProvider({ children }) {
   const loadUserData = useCallback(async (user) => {
     const [symptomsRes, contextRes, profileRes, briefRes] = await Promise.all([
       supabase
-        .from("symptom_entries")
+        .from("symptoms")
         .select("*")
         .eq("user_id", user.id)
         .order("date", { ascending: false }),
@@ -102,13 +102,13 @@ export function DataProvider({ children }) {
       supabase
         .from("profiles")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .maybeSingle(),
       supabase
-        .from("evidence_briefs")
-        .select("*, questions(*)")
+        .from("brief_drafts")
+        .select("*")
         .eq("user_id", user.id)
-        .order("generated_at", { ascending: false })
+        .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
     ]);
@@ -116,26 +116,37 @@ export function DataProvider({ children }) {
     if (symptomsRes.error) {
       console.error("Failed to load symptoms:", symptomsRes.error);
     } else if (symptomsRes.data?.length) {
-      setSymptomEntries(symptomsRes.data);
+      setSymptomEntries(
+        symptomsRes.data.map((row) => ({
+          ...row,
+          duration_minutes: row.duration ?? null,
+        })),
+      );
     }
 
     if (contextRes.error) {
       console.error("Failed to load context:", contextRes.error);
     } else if (contextRes.data?.length) {
-      setContextEntries(contextRes.data);
+      setContextEntries(
+        contextRes.data.map((row) => ({
+          ...row,
+          sleep_hours: row.sleep ?? null,
+          stress_level: row.stress ?? null,
+        })),
+      );
     }
 
     if (profileRes.error) {
       console.error("Failed to load profile:", profileRes.error);
     } else if (profileRes.data) {
+      const data = profileRes.data.onboarding_data ?? {};
       setOnboarding((current) => ({
         ...current,
-        status: SETUP_STATUS.COMPLETED,
-        firstName: profileRes.data.display_name ?? current.firstName,
-        concern: profileRes.data.main_concern ?? current.concern,
-        completedAt: profileRes.data.updated_at ?? new Date().toISOString(),
-        skippedAt: null,
-        source: "local",
+        ...data,
+        status: profileRes.data.onboarding_status ?? SETUP_STATUS.COMPLETED,
+        completedAt: profileRes.data.completed_at ?? current.completedAt,
+        skippedAt: profileRes.data.skipped_at ?? current.skippedAt,
+        source: profileRes.data.source ?? current.source,
       }));
     }
 
@@ -144,13 +155,7 @@ export function DataProvider({ children }) {
     } else if (briefRes.data) {
       setDraft({
         statement: briefRes.data.statement ?? "",
-        questions: (briefRes.data.questions ?? []).map((q) => ({
-          id: q.id,
-          text: q.text,
-          section: q.section,
-          source: q.source,
-          position: q.position,
-        })),
+        questions: Array.isArray(briefRes.data.questions) ? briefRes.data.questions : [],
       });
     }
   }, [setDraft, setSymptomEntries, setContextEntries, setOnboarding]);
@@ -193,7 +198,7 @@ export function DataProvider({ children }) {
     return () => {
       subscription.subscription?.unsubscribe?.();
     };
-  }, [loadUserData, resetBriefDraft, setContextEntries, setOnboarding, setSupabaseReady, setSupabaseUser, setSymptomEntries, upsertUserRow]);
+  }, [loadUserData, setContextEntries, setOnboarding, setSupabaseReady, setSupabaseUser, setSymptomEntries, upsertUserRow]);
 
   const isReady = supabaseReady;
 
@@ -232,13 +237,13 @@ export function DataProvider({ children }) {
       setSymptomEntries((current) => [tempRow, ...current]);
 
       const { data, error } = await supabase
-        .from("symptom_entries")
+        .from("symptoms")
         .insert({
           user_id: supabaseUser.id,
           symptom: entry.symptom,
           date: entry.date,
           severity: entry.severity ?? null,
-          duration_minutes: entry.duration_minutes ?? null,
+          duration: entry.duration_minutes ?? null,
           notes: entry.notes ?? null,
           impact: entry.impact ?? null,
         })
@@ -251,7 +256,7 @@ export function DataProvider({ children }) {
       }
 
       setSymptomEntries((current) =>
-        current.map((row) => (row.id === tempRow.id ? data : row)),
+        current.map((row) => (row.id === tempRow.id ? { ...data, duration_minutes: data.duration ?? null } : row)),
       );
     },
     [supabaseUser],
@@ -267,7 +272,7 @@ export function DataProvider({ children }) {
 
       if (entry?.user_id === supabaseUser.id) {
         const { error } = await supabase
-          .from("symptom_entries")
+          .from("symptoms")
           .delete()
           .eq("id", id);
 
@@ -282,10 +287,10 @@ export function DataProvider({ children }) {
       const row = {
         user_id: supabaseUser.id,
         date: entry.date,
-        sleep_hours: entry.sleep_hours ?? null,
-        stress_level: entry.stress_level ?? null,
-        cycle_day: entry.cycle_day ?? null,
+        sleep: entry.sleep_hours ?? null,
+        stress: entry.stress_level ?? null,
         cycle_phase: entry.cycle_phase ?? null,
+        notes: entry.notes ?? null,
       };
 
       const { data, error } = await supabase
@@ -314,42 +319,22 @@ export function DataProvider({ children }) {
 
   const saveEvidenceBrief = useCallback(
     async (reportSnapshot, statement, questions) => {
-      if (!supabaseUser || !reportSnapshot) return;
+      if (!supabaseUser) return;
 
-      const { data: brief, error: briefError } = await supabase
-        .from("evidence_briefs")
-        .insert({
-          user_id: supabaseUser.id,
-          period_start: reportSnapshot.range?.start,
-          period_end: reportSnapshot.range?.end,
-          report_snapshot: reportSnapshot,
-          statement,
-        })
-        .select()
-        .single();
+      const { error } = await supabase
+        .from("brief_drafts")
+        .upsert(
+          {
+            user_id: supabaseUser.id,
+            statement,
+            questions: Array.isArray(questions) ? questions : [],
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
+        );
 
-      if (briefError) {
-        console.error("Failed to save brief:", briefError);
-        return;
-      }
-
-      if (questions?.length && brief) {
-        const questionRows = questions.map((q, i) => ({
-          brief_id: brief.id,
-          user_id: supabaseUser.id,
-          text: q.text,
-          section: q.section,
-          source: q.source ?? "manual",
-          position: q.position ?? i,
-        }));
-
-        const { error: questionsError } = await supabase
-          .from("questions")
-          .insert(questionRows);
-
-        if (questionsError) {
-          console.error("Failed to save questions:", questionsError);
-        }
+      if (error) {
+        console.error("Failed to save brief:", error);
       }
     },
     [supabaseUser],
@@ -377,9 +362,13 @@ export function DataProvider({ children }) {
 
       if (supabaseUser) {
         const profile = {
-          user_id: supabaseUser.id,
-          display_name: clean.firstName,
-          main_concern: clean.concern,
+          id: supabaseUser.id,
+          name: clean.firstName,
+          onboarding_data: clean,
+          onboarding_status: SETUP_STATUS.COMPLETED,
+          completed_at: new Date().toISOString(),
+          skipped_at: null,
+          source: "local",
           updated_at: new Date().toISOString(),
         };
 
@@ -433,7 +422,7 @@ export function DataProvider({ children }) {
   const clearAllEntries = useCallback(async () => {
     if (supabaseUser) {
       await Promise.all([
-        supabase.from("symptom_entries").delete().eq("user_id", supabaseUser.id),
+        supabase.from("symptoms").delete().eq("user_id", supabaseUser.id),
         supabase.from("context_entries").delete().eq("user_id", supabaseUser.id),
       ]).catch((err) => console.error("Failed to clear entries:", err));
     }
@@ -444,10 +433,10 @@ export function DataProvider({ children }) {
   const startFresh = useCallback(async () => {
     if (supabaseUser) {
       await Promise.all([
-        supabase.from("symptom_entries").delete().eq("user_id", supabaseUser.id),
+        supabase.from("symptoms").delete().eq("user_id", supabaseUser.id),
         supabase.from("context_entries").delete().eq("user_id", supabaseUser.id),
-        supabase.from("profiles").delete().eq("user_id", supabaseUser.id),
-        supabase.from("evidence_briefs").delete().eq("user_id", supabaseUser.id),
+        supabase.from("profiles").delete().eq("id", supabaseUser.id),
+        supabase.from("brief_drafts").delete().eq("user_id", supabaseUser.id),
       ]).catch((err) => console.error("Failed to start fresh:", err));
     }
     setSymptomEntries([]);
