@@ -1,4 +1,6 @@
+import { ArrowLeft } from "lucide-react";
 import { PublicShell } from "@/components/layout/PublicShell";
+import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 
@@ -6,6 +8,12 @@ export default function AboutPage() {
   return (
     <PublicShell>
       <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
+        <div className="mb-8">
+          <Button href="/" variant="outline" size="sm">
+            <ArrowLeft size={16} aria-hidden="true" />
+            Back to home
+          </Button>
+        </div>
         <div className="text-center">
           <Badge tone="accent">About Advoc8</Badge>
           <h1 className="mt-4 font-serif text-4xl font-semibold leading-tight sm:text-5xl">

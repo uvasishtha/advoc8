@@ -45,26 +45,28 @@ const EXAMPLES = [
 export default function LandingPage() {
   return (
     <PublicShell>
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 landing-section">
         <div className="max-w-3xl">
-          <Badge tone="accent">HealthKit Hackathon winner</Badge>
-          <h1 className="mt-5 font-serif text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
+          <Badge tone="accent" className="landing-badge">
+            HealthKit Hackathon winner
+          </Badge>
+          <h1 className="mt-5 landing-title font-serif text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
             Helping women advocate for better care.
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
+          <p className="mt-6 landing-subtitle max-w-2xl text-lg leading-relaxed text-muted">
             A simple, focused tool that turns your symptoms and notes into a clear
             Evidence Brief you can bring to your doctor.
           </p>
-          <p className="mt-3 text-base leading-relaxed text-muted">
-            Clean UI, straightforward tracking, and a readable summary — nothing
-            flashy, just something that works.
+          <p className="mt-3 landing-subtitle text-base leading-relaxed text-muted">
+            Beta version — currently conducting user research. Clean UI, straightforward
+            tracking, and a readable summary. Nothing flashy, just something that works.
           </p>
 
-          <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Button href="/dashboard" size="lg">
+          <div className="mt-9 flex flex-wrap items-center gap-3 landing-cta">
+            <Button href="/dashboard" size="lg" className="landing-button">
               Open sample demo
             </Button>
-            <Button href="/about" variant="outline" size="lg">
+            <Button href="/about" variant="outline" size="lg" className="landing-button">
               About us
             </Button>
           </div>
@@ -75,7 +77,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section aria-labelledby="how" className="border-y border-border bg-surface">
+      <section aria-labelledby="how" className="border-y border-border bg-surface landing-section">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <h2 id="how" className="max-w-2xl font-serif text-3xl font-semibold">
             Four steps, and the middle two are the point.
@@ -84,9 +86,9 @@ export default function LandingPage() {
           <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step) => (
               <li key={step.number}>
-                <Card className="h-full p-5">
+                <Card className="landing-step-card h-full p-5">
                   <div className="mb-3 flex items-center gap-2.5">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-accent-strong">
+                    <span className="landing-icon-ring flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-accent-strong">
                       <step.icon size={16} aria-hidden="true" />
                     </span>
                     <span className="font-serif text-sm font-semibold text-accent-strong">
@@ -102,7 +104,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section aria-labelledby="language" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+      <section aria-labelledby="language" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 landing-section">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <div>
             <h2 id="language" className="font-serif text-3xl font-semibold">
@@ -119,7 +121,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <Card className="p-6">
+          <Card className="landing-card relative overflow-hidden p-6">
             <p className="eyebrow">What it says</p>
             {EXAMPLES.map((example) => (
               <div key={example.label} className="mt-4">

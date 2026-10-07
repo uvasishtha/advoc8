@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, RotateCcw, Trash2, UserRound } from "lucide-react";
+import { Download, RotateCcw, Trash2, UserRound, LogOut, ArrowLeft } from "lucide-react";
 import { useAdvoc8 } from "@/components/providers/DataProvider";
 import { PageContainer } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
@@ -55,10 +55,16 @@ export default function SettingsPage() {
 
   return (
     <PageContainer className="max-w-3xl space-y-6">
-      <header>
-        <p className="eyebrow">Settings</p>
-        <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">Settings</h1>
-      </header>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <header>
+          <p className="eyebrow">Settings</p>
+          <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">Settings</h1>
+        </header>
+        <Button href="/" variant="outline" size="sm">
+          <ArrowLeft size={16} aria-hidden="true" />
+          Back to home
+        </Button>
+      </div>
 
       <Card className="p-5 sm:p-6">
         <CardHeader
@@ -154,6 +160,14 @@ export default function SettingsPage() {
         </dl>
 
         <div className="mt-5 flex flex-wrap gap-3">
+          <Button
+            href="/"
+            variant="ghost"
+          >
+            <LogOut size={16} aria-hidden="true" />
+            Logout
+          </Button>
+
           <Button
             variant="outline"
             onClick={() =>

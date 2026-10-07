@@ -258,3 +258,91 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Landing page hover effects */
+.landing-card {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+}
+
+.landing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -10px rgba(196, 48, 127, 0.25);
+}
+
+.landing-button {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.landing-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -6px rgba(196, 48, 127, 0.4);
+}
+
+.landing-button:active {
+  transform: translateY(0);
+}
+
+.landing-badge {
+  animation: badge-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+@keyframes badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.landing-title {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-subtitle {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+.landing-cta {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+}
+
+.landing-section {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-section:nth-child(1) { animation-delay: 0.1s; }
+.landing-section:nth-child(2) { animation-delay: 0.25s; }
+.landing-section:nth-child(3) { animation-delay: 0.4s; }
+
+.landing-step-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.landing-step-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 16px 32px -12px rgba(196, 48, 127, 0.3);
+}
+
+.landing-icon-ring {
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.landing-step-card:hover .landing-icon-ring {
+  transform: rotate(-8deg) scale(1.1);
+  background-color: var(--color-accent);
+  color: var(--color-foreground);
+}
