@@ -95,7 +95,7 @@ export default function AboutPage() {
                   title="Advoc8 pitch video"
                   className="aspect-video w-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowfullscreen
+                  allowFullScreen
                 />
               </div>
             </div>
