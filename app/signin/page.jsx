@@ -103,6 +103,19 @@ export default function SignInPage() {
           throw signInResult.error;
         }
       }
+
+      for (let attempt = 1; attempt <= 10; attempt++) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session?.user) {
+          router.replace("/home");
+          return;
+        }
+        if (attempt < 10) {
+          await new Promise((r) => setTimeout(r, 150));
+        }
+      }
+
+      setError("Signed in, but the session was not ready yet. Refresh the page.");
     } catch (err) {
       setError(err.message ?? "Something went wrong.");
     } finally {
