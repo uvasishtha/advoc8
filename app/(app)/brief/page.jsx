@@ -78,6 +78,15 @@ export default function BriefPage() {
             />
           ) : (
             <>
+              <BeforeAppointment
+                report={report}
+                user={user}
+                statement={draft.statement}
+                questions={draft.questions}
+                appointmentGoal={draft.appointmentGoal}
+                onAppointmentGoalChange={setAppointmentGoal}
+              />
+
               <p className="hint">{report.readiness.note}</p>
 
               <Disclaimer>
