@@ -1,6 +1,5 @@
 import { FileText, NotebookPen, Sparkle } from "lucide-react";
 import { PublicShell } from "@/components/layout/PublicShell";
-import { OpenDemoButton } from "@/components/landing/OpenDemoButton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -62,9 +61,11 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <OpenDemoButton unlock={false}>Open sample demo</OpenDemoButton>
-            <Button href="/track" variant="outline" size="lg">
-              Log a symptom
+            <Button href="/dashboard" size="lg">
+              Open sample demo
+            </Button>
+            <Button href="/about" variant="outline" size="lg">
+              About us
             </Button>
           </div>
 
@@ -137,7 +138,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-t border-border bg-accent-soft">
+      <section className="border-t border-border">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <div className="max-w-2xl">
             <h2 className="font-serif text-3xl font-semibold">Ready to look at your own record?</h2>
@@ -146,7 +147,12 @@ export default function LandingPage() {
               the numbers appear.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <OpenDemoButton>Open the demo</OpenDemoButton>
+              <Button href="/dashboard" size="lg">
+                Open sample demo
+              </Button>
+              <Button href="/about" variant="outline" size="lg">
+                About us
+              </Button>
               <Button href="/practice" variant="outline" size="lg">
                 Try the practice mode
               </Button>

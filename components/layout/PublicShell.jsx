@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 
-const NAV = [{ href: "/dashboard", label: "Open the demo" }];
-
 export function PublicShell({ children }) {
   return (
     <div className="flex min-h-screen flex-col">
@@ -16,17 +14,6 @@ export function PublicShell({ children }) {
       <header className="border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4 sm:px-6">
           <Logo asLink={false} />
-          <nav aria-label="Main" className="flex items-center gap-1 sm:gap-2">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent-strong hover:text-white"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
         </div>
       </header>
 
@@ -47,11 +34,15 @@ export function PublicShell({ children }) {
 
             <nav aria-label="Footer" className="flex flex-col gap-2 text-sm">
               <p className="eyebrow">Explore</p>
-              {NAV.map((item) => (
-                <Link key={item.href} href={item.href} className="text-muted hover:text-foreground">
-                  {item.label}
-                </Link>
-              ))}
+              <Link href="/about" className="text-muted hover:text-foreground">
+                About us
+              </Link>
+              <Link href="/track" className="text-muted hover:text-foreground">
+                Log a symptom
+              </Link>
+              <Link href="/practice" className="text-muted hover:text-foreground">
+                Practice
+              </Link>
               <Link href="/settings" className="text-muted hover:text-foreground">
                 Settings
               </Link>
