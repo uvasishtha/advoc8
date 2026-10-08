@@ -94,7 +94,7 @@ export default function BriefPage() {
                 let them interpret it.
               </Disclaimer>
 
-              <Section number={1} title="What I've Been Experiencing">
+<Section number={1} title="What I've Been Experiencing">
                 <OverviewSection report={report} user={user} />
               </Section>
 
@@ -108,38 +108,6 @@ export default function BriefPage() {
 
               <Section
                 number={3}
-                title="Quantitative Trends"
-                description="Counts and averages, with the underlying dates visible."
-              >
-                <TrendsSection report={report} />
-              </Section>
-
-              <Section
-                number={4}
-                title="Patterns in My Data"
-                description="Things that kept showing up together. Co-occurrence, not cause."
-              >
-                <PatternsSection report={report} />
-              </Section>
-
-              <Section
-                number={5}
-                title="Changes Over Time"
-                description="First half of the period compared with the second half."
-              >
-                <ChangesSection report={report} />
-              </Section>
-
-              <Section
-                number={6}
-                title="What I Want My Doctor to Know"
-                description="Your words, not generated ones. Edit it any time."
-              >
-                <StatementSection value={draft.statement} onChange={setStatement} />
-              </Section>
-
-              <Section
-                number={7}
                 title="Questions I Want to Ask"
                 description="Generated from this brief. Edit, delete or add your own — yours is what gets printed."
               >
@@ -152,6 +120,38 @@ export default function BriefPage() {
                 ) : (
                   <div className="skeleton h-40 w-full" />
                 )}
+              </Section>
+
+              <Section
+                number={4}
+                title="Quantitative Trends"
+                description="Counts and averages, with the underlying dates visible."
+              >
+                <TrendsSection report={report} />
+              </Section>
+
+              <Section
+                number={5}
+                title="Patterns in My Data"
+                description="Things that kept showing up together. Co-occurrence, not cause."
+              >
+                <PatternsSection report={report} />
+              </Section>
+
+              <Section
+                number={6}
+                title="Changes Over Time"
+                description="First half of the period compared with the second half."
+              >
+                <ChangesSection report={report} />
+              </Section>
+
+              <Section
+                number={7}
+                title="What I Want My Doctor to Know"
+                description="Your words, not generated ones. Edit it any time."
+              >
+                <StatementSection value={draft.statement} onChange={setStatement} />
               </Section>
             </>
           )}
