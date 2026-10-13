@@ -48,7 +48,7 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 landing-section">
         <div className="max-w-3xl">
           <Badge tone="accent" className="landing-badge">
-            HealthLink HealthKit Hackathon winner
+            HealthLink Hackathon winner
           </Badge>
           <h1 className="mt-5 landing-title font-serif text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
             Helping women advocate for better care.

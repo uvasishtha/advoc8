@@ -60,7 +60,7 @@ export default function AboutPage() {
             <div className="absolute left-0 top-0 h-1 w-full bg-accent" />
             <h2 className="font-serif text-xl font-semibold">Status</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Built as a HealthLink HealthKit Hackathon winner prototype. Currently in demo mode with sample
+              Built as a HealthLink Hackathon winner prototype. Currently in demo mode with sample
               data. Account creation and cloud sync are planned but not yet enabled.
             </p>
           </Card>
