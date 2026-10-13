@@ -1,5 +1,6 @@
 import { DM_Sans, Newsreader } from "next/font/google";
 import { DataProvider } from "@/components/providers/DataProvider";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -33,6 +34,7 @@ export default function RootLayout({ children }) {
         {/* Lives here rather than in the app layout so the landing page can load
             the sample data before anyone enters the app. */}
         <DataProvider>{children}</DataProvider>
+        <Analytics />
       </body>
     </html>
   );
