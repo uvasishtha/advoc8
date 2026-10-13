@@ -2,7 +2,7 @@
 
 ### Helping women advocate for better care.
 
-Advoc8 is a simple, focused tool that turns recurring symptoms into a clear Evidence Brief you can bring to your doctor. It won the HealthKit Hackathon for its straightforward approach to health tracking and communication.
+Advoc8 is a simple, focused tool that turns recurring symptoms into a clear Evidence Brief you can bring to your doctor. It won the HealthLink HealthKit Hackathon winner for its straightforward approach to health tracking and communication.
 
 Instead of relying on memory, Advoc8 helps users **track symptoms, identify patterns in their own data, and practice communicating with their doctor.**
 
