@@ -123,6 +123,17 @@ export default function DocsPage() {
                 </span>
                 <h2 className="font-serif text-2xl font-semibold sm:text-3xl">How to Use Advoc8</h2>
               </div>
+              <div className="mb-6 overflow-x-auto">
+                <div className="flex min-w-max items-center gap-2 text-sm">
+                  <div className="rounded-full border border-border bg-surface px-3 py-1.5 font-medium">Log</div>
+                  <ArrowRight size={14} className="text-muted" />
+                  <div className="rounded-full border border-border bg-surface px-3 py-1.5 font-medium">Review</div>
+                  <ArrowRight size={14} className="text-muted" />
+                  <div className="rounded-full border border-border bg-surface px-3 py-1.5 font-medium">Build Brief</div>
+                  <ArrowRight size={14} className="text-muted" />
+                  <div className="rounded-full border border-border bg-surface px-3 py-1.5 font-medium">Practice</div>
+                </div>
+              </div>
               <ol className="space-y-4">
                 <li className="flex gap-4"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold">1</span><div><p className="font-medium">Start tracking</p><p className="mt-1 text-muted">Log symptoms on <Link href="/track" className="text-accent-strong hover:underline">/track</Link>.</p></div></li>
                 <li className="flex gap-4"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold">2</span><div><p className="font-medium">Review patterns</p><p className="mt-1 text-muted">Check the <Link href="/dashboard" className="text-accent-strong hover:underline">Dashboard</Link> for stats and trends.</p></div></li>
