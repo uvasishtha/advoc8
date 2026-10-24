@@ -1,1 +1,9 @@
-fatal: path 'components/onboarding/OnboardingGate.jsx' exists on disk, but not in 'af6b982'
+"use client";
+
+/**
+ * Demo mode: allow access to the app without requiring onboarding.
+ * Authentication and onboarding can be restored after the core demo works.
+ */
+export function OnboardingGate({ children }) {
+  return children;
+}
