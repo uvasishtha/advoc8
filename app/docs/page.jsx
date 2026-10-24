@@ -96,6 +96,24 @@ export default function DocsPage() {
                 </span>
                 <h2 className="font-serif text-2xl font-semibold sm:text-3xl">Core Features</h2>
               </div>
+              <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="rounded-lg border border-border bg-surface p-3 text-center">
+                  <NotebookPen size={16} className="mx-auto text-accent-strong" />
+                  <p className="mt-1 text-xs font-medium">Track</p>
+                </div>
+                <div className="rounded-lg border border-border bg-surface p-3 text-center">
+                  <Calendar size={16} className="mx-auto text-accent-strong" />
+                  <p className="mt-1 text-xs font-medium">Dashboard</p>
+                </div>
+                <div className="rounded-lg border border-border bg-surface p-3 text-center">
+                  <FileText size={16} className="mx-auto text-accent-strong" />
+                  <p className="mt-1 text-xs font-medium">Brief</p>
+                </div>
+                <div className="rounded-lg border border-border bg-surface p-3 text-center">
+                  <Sparkle size={16} className="mx-auto text-accent-strong" />
+                  <p className="mt-1 text-xs font-medium">Practice</p>
+                </div>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Card tone="quiet" className="p-5">
                   <div className="mb-2 flex items-center gap-2"><NotebookPen size={17} className="text-accent-strong" /><h3 className="font-semibold text-foreground">Track Symptoms</h3></div>
