@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { Logo } from "@/components/layout/Logo";
 
 export default function SignInPage() {
   return (

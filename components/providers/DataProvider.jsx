@@ -41,13 +41,17 @@ export function DataProvider({ children }) {
   const [entries, setEntries, isReady] = useLocalStore(entriesStore);
   const [lockedFeature, setLockedFeature] = useState(null);
 
-  const symptomEntries = Array.isArray(entries?.symptomEntries)
-    ? entries.symptomEntries
-    : [];
+  const symptomEntries = useMemo(
+    () =>
+      Array.isArray(entries?.symptomEntries) ? entries.symptomEntries : [],
+    [entries],
+  );
 
-  const contextEntries = Array.isArray(entries?.contextEntries)
-    ? entries.contextEntries
-    : [];
+  const contextEntries = useMemo(
+    () =>
+      Array.isArray(entries?.contextEntries) ? entries.contextEntries : [],
+    [entries],
+  );
 
   useEffect(() => {
     if (!isReady) return;
