@@ -22,11 +22,6 @@ import {
   SAMPLE_USER,
 } from "@/lib/seed/maya";
 
-const EMPTY_ENTRIES = {
-  symptomEntries: [],
-  contextEntries: [],
-};
-
 const DEFAULT_ENTRIES = {
   symptomEntries: MOCK_SYMPTOM_ENTRIES,
   contextEntries: MOCK_CONTEXT_ENTRIES,
@@ -54,8 +49,6 @@ export function DataProvider({ children }) {
     ? entries.contextEntries
     : [];
 
-  // Load sample data once if an earlier version saved an empty demo record.
-  // The marker prevents this from undoing a user's later choice to clear data.
   useEffect(() => {
     if (!isReady) return;
 
@@ -70,7 +63,7 @@ export function DataProvider({ children }) {
 
       window.localStorage.setItem(marker, "true");
     } catch {
-      // The demo remains usable if browser storage is unavailable.
+      // Keep the demo usable if browser storage is unavailable.
     }
   }, [isReady, symptomEntries.length, contextEntries.length, setEntries]);
 
@@ -79,8 +72,6 @@ export function DataProvider({ children }) {
     [symptomEntries, contextEntries],
   );
 
-  // Use a fixed sample profile for demo mode; no account or Supabase session
-  // is required.
   const user = useMemo(
     () => ({
       ...SAMPLE_USER,
@@ -189,10 +180,7 @@ export function DataProvider({ children }) {
     }
   }, [setEntries]);
 
-  // In demo mode, starting fresh clears the tracking record.
   const startFresh = clearAllEntries;
-
-  // Skipping setup opens the sample demo instead of requiring an account.
   const skipOnboarding = resetToSampleData;
 
   const closeFeaturePrompt = useCallback(() => {
@@ -202,6 +190,7 @@ export function DataProvider({ children }) {
   const value = useMemo(
     () => ({
       user,
+      profile: user,
       access,
       isReady,
       isLoading: !isReady,
