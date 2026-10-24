@@ -37,6 +37,9 @@ export function PublicShell({ children }) {
               <Link href="/about" className="text-muted hover:text-foreground">
                 About us
               </Link>
+              <Link href="/docs" className="text-muted hover:text-foreground">
+                Docs
+              </Link>
               <Link href="/track" className="text-muted hover:text-foreground">
                 Log a symptom
               </Link>

@@ -1,4 +1,4 @@
-import { FileText, NotebookPen, Sparkle } from "lucide-react";
+import { ArrowRight, FileText, NotebookPen, Sparkle } from "lucide-react";
 import { PublicShell } from "@/components/layout/PublicShell";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -104,39 +104,24 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section aria-labelledby="language" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 landing-section">
-        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-          <div>
-            <h2 id="language" className="font-serif text-3xl font-semibold">
-              It tells you what your records show. Not what they mean.
-            </h2>
-            <p className="mt-4 leading-relaxed text-muted">
-              A lot of health apps cannot help themselves. They tell you that your sleep is causing
-              your headaches, or worse, what condition you have. Advoc8 will not, because it has no
-              business doing either.
-            </p>
-            <p className="mt-4 leading-relaxed text-muted">
-              It reports what you logged and what kept appearing together. Deciding what that means
-              is a conversation for a clinician who can examine you.
-            </p>
-          </div>
-
-          <Card className="landing-card relative overflow-hidden p-6">
-            <p className="eyebrow">What it says</p>
-            {EXAMPLES.map((example) => (
-              <div key={example.label} className="mt-4">
-                <Badge tone={example.label === "Observed" ? "accent" : "outline"}>{example.label}</Badge>
-                <p className="mt-2 leading-relaxed text-foreground">{example.text}</p>
-              </div>
-            ))}
-
-            <div className="mt-6 border-t border-border pt-5">
-              <p className="eyebrow">What it will not say</p>
-              <p className="mt-2 rounded-lg bg-warning-soft px-3 py-2 text-sm leading-relaxed text-warning">
-                &ldquo;Your lack of sleep caused your headaches.&rdquo;
+      <section aria-labelledby="learn-more" className="border-t border-border bg-surface">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+            <div className="max-w-2xl">
+              <p className="eyebrow">Learn more</p>
+              <h2 id="learn-more" className="mt-2 font-serif text-3xl font-semibold sm:text-4xl">
+                Read the docs
+              </h2>
+              <p className="mt-3 leading-relaxed text-muted">
+                Understand how Advoc8 works, from tracking symptoms to building your Evidence Brief
+                and practicing for your appointment.
               </p>
             </div>
-          </Card>
+            <Button href="/docs" size="lg">
+              View documentation
+              <ArrowRight size={16} aria-hidden="true" />
+            </Button>
+          </div>
         </div>
       </section>
     </PublicShell>
